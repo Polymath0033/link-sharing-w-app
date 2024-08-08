@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Instrument_Sans } from "next/font/google";
 import "./globals.css";
-
-const inter = Inter({ subsets: ["latin"] });
+import { AppHeader } from "@/components/molecules/header";
+const instrumentalSans = Instrument_Sans({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -16,8 +16,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <svg fill="inherit"></svg>
-      <body className={inter.className}>{children}</body>
+      <body className={`${instrumentalSans.className}   bg-light-grey`}>
+        {children}
+      </body>
     </html>
   );
 }

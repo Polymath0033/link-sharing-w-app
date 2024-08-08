@@ -2,5 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 body {
-    cursor: url("/cursor.svg") 12 12, auto;
+  cursor: url("/cursor.svg") 12 12, auto;
+  background-color: #fafafa;
 }

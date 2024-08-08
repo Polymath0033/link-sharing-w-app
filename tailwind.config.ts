@@ -27,9 +27,9 @@ const config: Config = {
       boxShadow: {
         "active-selection": "0px 0px 32px 0px rgba(99, 60, 255, 0.25)",
       },
-      cursor:{
-        
-      }
+      backgroundImage: {
+        illustration: "url('/images/illustration-phone-mockup.svg')",
+      },
     },
   },
   plugins: [],
