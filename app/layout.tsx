@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Instrument_Sans } from "next/font/google";
 import "./globals.css";
-import { AppHeader } from "@/components/molecules/header";
 const instrumentalSans = Instrument_Sans({ subsets: ["latin"] });
 
 export const metadata: Metadata = {

@@ -15,7 +15,7 @@ export const AppTab: FC<{
       className={`px-[27px] py-[11px] flex items-center text-heading-s gap-2 rounded-lg   ${
         active
           ? "text-purple bg-light-purple"
-          : "text-gray bg-transparent hover:text-purple hover:bg-transparent"
+          : "!text-grey bg-transparent hover:text-purple hover:bg-transparent"
       }`}
     >
       {children}
