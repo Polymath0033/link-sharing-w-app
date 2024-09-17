@@ -61,14 +61,14 @@ export const HomePage: FC = () => {
 
   return (
     <Fragment>
-      <div className="px-10">
+      <div className="px-6 sm:px-10">
         <h1 className="text-heading-m text-dark-grey">Customize your links</h1>
         <p className="text-grey text-body-m">
           Add/edit/remove links below and then share all your profiles with the
           world!
         </p>
       </div>
-      <div className="flex flex-col self-stretch items-start flex-1 w-full gap-6 px-10">
+      <div className="flex flex-col self-stretch items-start flex-1 w-full gap-6 px-6 sm:px-10 pb-20 md:pb-0">
         <OutlinedButton
           onClick={addNewLink}
           value="+ Add new link"
@@ -83,7 +83,7 @@ export const HomePage: FC = () => {
               height={160}
             />
             <div className="flex flex-col gap-3 items-center">
-              <h3 className="text-heading-m text-dark-grey">
+              <h3 className="text-heading-m text-dark-grey text-center sm:text-start">
                 Let’s get you started
               </h3>
               <p className="text-center text-grey text-body-m">
@@ -113,12 +113,17 @@ export const HomePage: FC = () => {
         )}
       </div>
 
-      <div className="flex flex-col justify-end self-stretch items-start  ">
+      <div className="flex flex-col justify-end self-stretch items-start  fixed bottom-6 rounded-br-xl rounded-bl-xl mt-8 left-6 w-[calc(100%_-_48px)] z-50 bg-white md:relative">
         <div className="bg-borders h-[1px] w-full"></div>
-        <div className="px-10 py-3 flex flex-col self-end items-stretch">
-          <AppButton value="Save" disabled={links.length < 1} />
+        <div className="px-6 sm:px-10 py-3 flex flex-col sm:self-end w-full relative z-50 sm:w-fit items-stretch">
+          <AppButton
+            value="Save"
+            className="!w-full"
+            disabled={links.length < 1}
+          />
         </div>
       </div>
+      <div className="flex md:hidden w-[calc(100%_-_48px)] fixed left-6 bottom-0 z-50 bg-light-grey h-6 "></div>
     </Fragment>
   );
 };

@@ -9,16 +9,16 @@ const ProfileDetailsPage: FC = () => {
   const [email, setEmail] = useState("");
   return (
     <HomeWrapper>
-      <div className="px-10">
+      <div className=" px-6 sm:px-10 ">
         <h1 className="text-heading-m text-dark-grey">Profile Details</h1>
         <p className="text-grey text-body-m">
           Add your details to create a personal touch to your profile.
         </p>
       </div>
-      <section className="rounded-xl px-10 w-full flex flex-col gap-6">
-        <div className="flex items-center self-stretch gap-4 bg-light-grey rounded-xl w-full p-5">
+      <section className="rounded-xl px-6 sm:px-10 w-full flex flex-col gap-6 ">
+        <div className="flex flex-col sm:flex-row justify-center sm:items-center self-stretch gap-3 sm:gap-4 bg-light-grey rounded-xl w-full p-5">
           <p className="text-grey text-body-m w-[220px]">Profile picture</p>
-          <div className="flex items-center gap-6 [flex:1_0_0] border">
+          <div className="flex flex-col sm:flex-row justify-center items-start sm:items-center gap-6 [flex:1_0_0] ">
             <div className="flex justify-center items-center flex-col gap-2 pt-[61px] pr-[38px] pb-[60px] pl-[39px] rounded-xl bg-light-purple ">
               <svg
                 width="40"
@@ -43,8 +43,8 @@ const ProfileDetailsPage: FC = () => {
           </div>
         </div>
         <div className="flex flex-col justify-center self-stretch gap-3 bg-light-grey rounded-xl w-full p-5">
-          <div className="flex items-center self-stretch gap-4">
-            <p className="text-grey text-body-m w-[220px]">First Name</p>
+          <div className="flex flex-col sm:flex-row justify-center items-start sm:items-center  self-stretch gap-2 sm:gap-4">
+            <p className="text-grey text-body-m w-[220px]">First Name*</p>
             <AppInput
               className="[flex:1_0_0]"
               value={firstName}
@@ -53,8 +53,8 @@ const ProfileDetailsPage: FC = () => {
               placeholder="e.g John"
             />
           </div>
-          <div className="flex items-center self-stretch gap-4 ">
-            <p className="text-grey text-body-m w-[220px]">Last Name</p>
+          <div className="flex flex-col sm:flex-row items-start justify-center sm:items-center self-stretch gap-2 sm:gap-4">
+            <p className="text-grey text-body-m w-[220px]">Last Name*</p>
             <AppInput
               className="[flex:1_0_0]"
               value={lastName}
@@ -63,8 +63,8 @@ const ProfileDetailsPage: FC = () => {
               placeholder="e.g. Appleseed"
             />
           </div>
-          <div className="flex items-center self-stretch gap-4 ">
-            <p className="text-grey text-body-m w-[220px]">Last Name</p>
+          <div className="flex flex-col sm:flex-row items-start justify-center sm:items-center self-stretch gap-2 sm:gap-4 ">
+            <p className="text-grey text-body-m w-[220px]">Email</p>
             <AppInput
               className="[flex:1_0_0]"
               value={email}
@@ -76,9 +76,9 @@ const ProfileDetailsPage: FC = () => {
           </div>
         </div>
       </section>
-      <div className="flex flex-col justify-end self-stretch items-start  ">
+      <div className="flex flex-col justify-end self-stretch items-start pt-10">
         <div className="bg-borders h-[1px] w-full"></div>
-        <div className="px-10 py-3 flex flex-col self-end items-stretch">
+        <div className="px-6 sm:px-10 py-3 flex flex-col self-end items-stretch">
           <AppButton value="Save" />
         </div>
       </div>
