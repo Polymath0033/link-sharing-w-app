@@ -9,7 +9,6 @@ export const AppTab: FC<{
 }> = ({ value, active, onClick, children, spanClassName }) => {
   return (
     <button
-      role="tab"
       type="button"
       onClick={onClick}
       className={`px-[27px] py-[11px] flex items-center text-heading-s gap-2 rounded-lg   ${

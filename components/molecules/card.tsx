@@ -2,7 +2,27 @@
 import { FC, useState } from "react";
 import { AppSelect } from "../atoms/inputs/app-select";
 import { AppInput } from "../atoms/inputs/app-input";
-export const Card: FC<{}> = ({}) => {
+export const Card: FC<{
+  platform: string;
+  link: string;
+  index: number;
+  onUpdatePlatform: (platform: string) => void;
+  onUpdateLink: (link: string) => void;
+  removeLink: () => void;
+  updateDropdown: () => void;
+  dropdown: boolean;
+  closeDropdown: () => void;
+}> = ({
+  platform,
+  link,
+  onUpdatePlatform,
+  onUpdateLink,
+  index,
+  removeLink,
+  updateDropdown,
+  dropdown,
+  closeDropdown,
+}) => {
   const [selectedLink, setSelectedLink] = useState<string>("");
   const selectedLinkHandler = (value: string) => {
     setSelectedLink(value);
@@ -16,19 +36,31 @@ export const Card: FC<{}> = ({}) => {
             <div className="w-3 h-[1px] bg-grey"></div>
             <div className="w-3 h-[1px] bg-grey"></div>
           </div>
-          <h5 className="text-grey text-base font-bold leading-[150%]">Link</h5>
+          <h5 className="text-grey text-base font-bold leading-[150%]">
+            Link #{index + 1}
+          </h5>
         </div>
-        <button type="button" className="text-grey text-body-m">
+        <button
+          onClick={removeLink}
+          type="button"
+          className="text-grey text-body-m"
+        >
           Remove
         </button>
       </div>
-      <AppSelect onSelect={selectedLinkHandler} />
+      <AppSelect
+        platform={platform}
+        onSelect={onUpdatePlatform}
+        dropdown={dropdown}
+        closeDropdown={closeDropdown}
+        dropdownHandler={updateDropdown}
+      />
       <AppInput
         id="link"
         title="Link"
         type="url"
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
+        value={link}
+        onChange={(e) => onUpdateLink(e.target.value)}
         placeholder="https://example.com"
         required
         hasIcon

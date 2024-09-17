@@ -31,6 +31,9 @@ const config: Config = {
       backgroundImage: {
         illustration: "url('/images/illustration-phone-mockup.svg')",
       },
+      cursor: {
+        custom: "url('/images/cursor.svg'), auto",
+      },
     },
   },
   plugins: [],
