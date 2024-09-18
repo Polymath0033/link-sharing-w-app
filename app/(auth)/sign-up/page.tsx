@@ -2,10 +2,217 @@
 import { AppButton } from "@/components/atoms/buttons/app-button";
 import { AppInput } from "@/components/atoms/inputs/app-input";
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter, redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
+import { useReducer } from "react";
+import { supabase } from "@/utils/supabase/client";
+import { formatAuthError } from "@/utils/format-auth-error";
+import { AuthError } from "@supabase/supabase-js";
+type InitialState = {
+  email: {
+    value: string;
+    error: string;
+    blur: boolean;
+  };
+  password: { value: string; error: string; blur: boolean };
+  confirmPassword: { value: string; error: string; blur: boolean };
+  loading: boolean;
+
+  error: string;
+};
+const initialState: InitialState = {
+  email: { value: "", error: "", blur: false },
+  password: { value: "", error: "", blur: false },
+  confirmPassword: { value: "", error: "", blur: false },
+  loading: false,
+
+  error: "",
+};
+type Action =
+  | { type: "email"; payload: { value: string; error: string; blur: boolean } }
+  | {
+      type: "password";
+      payload: { value: string; error: string; blur: boolean };
+    }
+  | {
+      type: "confirmPassword";
+      payload: { value: string; error: string; blur: boolean };
+    }
+  | { type: "loading"; payload: boolean }
+  | { type: "error"; payload: string }
+  | { type: "reset" };
+
+const reducer = (state: InitialState, action: Action): InitialState => {
+  switch (action.type) {
+    case "email":
+      return {
+        ...state,
+        email: {
+          ...state.email,
+          value: action.payload.value,
+          error: action.payload.error,
+          blur: action.payload.blur,
+        },
+      };
+    case "password":
+      return {
+        ...state,
+        password: {
+          ...state.password,
+          value: action.payload.value,
+          error: action.payload.error,
+          blur: action.payload.blur,
+        },
+      };
+    case "confirmPassword":
+      return {
+        ...state,
+        confirmPassword: {
+          ...state.confirmPassword,
+          value: action.payload.value,
+          error: action.payload.error,
+          blur: action.payload.blur,
+        },
+      };
+    case "loading":
+      return { ...state, loading: action.payload };
+    case "error":
+      return { ...state, error: action.payload };
+
+    case "reset":
+      return initialState;
+    default:
+      return state;
+  }
+};
+
 export default function SignUp() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const router = useRouter();
+  const [state, dispatch] = useReducer(reducer, initialState);
+  const submitForm = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    let formIsValid = true; // Flag to track if the form is valid
+
+    // Email validation
+    if (state.email.value.trim() === "") {
+      dispatch({
+        type: "email",
+        payload: {
+          value: state.email.value,
+          error: "Can't be empty",
+          blur: true,
+        },
+      });
+      formIsValid = false;
+    } else if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.email.value) === false) {
+      dispatch({
+        type: "email",
+        payload: {
+          value: state.email.value,
+          error: "Please check again",
+          blur: true,
+        },
+      });
+      formIsValid = false;
+    } else {
+      dispatch({
+        type: "email",
+        payload: {
+          value: state.email.value,
+          error: "",
+          blur: true,
+        },
+      });
+    }
+
+    if (state.password.value.trim() === "") {
+      dispatch({
+        type: "password",
+        payload: {
+          value: state.password.value,
+          error: "Can't be empty",
+          blur: true,
+        },
+      });
+      formIsValid = false;
+    } else if (state.password.value.trim().length < 8) {
+      dispatch({
+        type: "password",
+        payload: {
+          value: state.password.value,
+          error: "At least 8 characters",
+          blur: true,
+        },
+      });
+      formIsValid = false;
+    } else {
+      dispatch({
+        type: "password",
+        payload: {
+          value: state.password.value,
+          error: "",
+          blur: true,
+        },
+      });
+    }
+    if (state.confirmPassword.value !== state.password.value) {
+      dispatch({
+        type: "confirmPassword",
+        payload: {
+          value: state.confirmPassword.value,
+          error: "Passwords don't match",
+          blur: true,
+        },
+      });
+      formIsValid = false;
+    } else {
+      dispatch({
+        type: "confirmPassword",
+        payload: {
+          value: state.confirmPassword.value,
+          error: "",
+          blur: true,
+        },
+      });
+    }
+
+    // Only proceed with form submission if all validations pass
+    if (!formIsValid) return;
+    dispatch({ type: "loading", payload: true });
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: state.email.value,
+        password: state.password.value,
+      });
+      dispatch({ type: "loading", payload: false });
+
+      console.error(String((error as AuthError)?.code));
+      dispatch({ type: "loading", payload: false });
+      dispatch({
+        type: "error",
+        payload:
+          formatAuthError((error as AuthError)?.message) ||
+          "Failed to authenticate",
+      });
+      if (error) {
+        throw error;
+      }
+      router.push("/");
+      // revalidatePath("/");
+      // redirect("/");
+    } catch (error) {
+      dispatch({ type: "loading", payload: false });
+      dispatch({
+        type: "error",
+        payload:
+          formatAuthError((error as AuthError)?.message) ||
+          "Failed to authenticate",
+      });
+    }
+
+    //router.push("/");
+  };
   return (
     <form className="bg-white flex flex-col items-start w-full sm:w-fit sm:p-10 gap-10">
       <div className="flex flex-col gap-2">
@@ -20,10 +227,37 @@ export default function SignUp() {
         <AppInput
           id="email"
           title="Email address"
-          value={email}
+          value={state.email.value}
+          blur={state.email.blur}
           type="email"
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) =>
+            dispatch({
+              type: "email",
+              payload: {
+                value: e.target.value,
+                error:
+                  e.target.value === ""
+                    ? "Can't be empty"
+                    : /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.target.value)
+                    ? ""
+                    : "Please check again",
+                blur: state.email.blur,
+              },
+            })
+          }
+          onBlur={(e) =>
+            dispatch({
+              type: "email",
+              payload: {
+                value: state.email.value,
+                error: state.email.error,
+                blur: true,
+              },
+            })
+          }
           hasIcon={true}
+          hasError={state.email.error.length > 0}
+          errorValue={state.email.error}
           placeholder="e.g.ben@example.com"
         >
           <svg
@@ -44,9 +278,36 @@ export default function SignUp() {
           id="password"
           title="Password"
           placeholder="At least 8 characters"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          value={state.password.value}
+          blur={state.password.blur}
+          onChange={(e) =>
+            dispatch({
+              type: "password",
+              payload: {
+                value: e.target.value,
+                error:
+                  e.target.value.trim() === ""
+                    ? "Can't be empty"
+                    : e.target.value.trim().length < 8
+                    ? "At least 8 characters"
+                    : "",
+                blur: state.password.blur,
+              },
+            })
+          }
+          onBlur={(e) =>
+            dispatch({
+              type: "password",
+              payload: {
+                value: state.password.value,
+                error: state.password.error,
+                blur: true,
+              },
+            })
+          }
           hasIcon={true}
+          hasError={state.password.error.length > 0}
+          errorValue={state.password.error}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -66,9 +327,34 @@ export default function SignUp() {
           id="confirm-password"
           title="Confirm password"
           placeholder="At least 8 characters"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          value={state.confirmPassword.value}
+          blur={state.confirmPassword.blur}
+          onBlur={(e) =>
+            dispatch({
+              type: "confirmPassword",
+              payload: {
+                value: state.confirmPassword.value,
+                error: state.confirmPassword.error,
+                blur: true,
+              },
+            })
+          }
+          onChange={(e) =>
+            dispatch({
+              type: "confirmPassword",
+              payload: {
+                value: e.target.value,
+                error:
+                  e.target.value !== state.password.value
+                    ? "Passwords don't match"
+                    : "",
+                blur: state.confirmPassword.blur,
+              },
+            })
+          }
           hasIcon={true}
+          hasError={state.confirmPassword.error.length > 0}
+          errorValue={state.confirmPassword.error}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -86,7 +372,12 @@ export default function SignUp() {
         <p className="text-grey text-body-s">
           Password must contains at least 8 characters
         </p>
-        <AppButton value="Create new account" />
+        <AppButton
+          value="Create new account"
+          onSubmit={submitForm}
+          type="submit"
+          loading={state.loading}
+        />
         <p className="text-center text-grey text-body-m mx-auto">
           Already have an account?{" "}
           <Link href="/login" className="text-purple">

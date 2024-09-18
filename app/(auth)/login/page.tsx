@@ -2,10 +2,166 @@
 import { AppButton } from "@/components/atoms/buttons/app-button";
 import { AppInput } from "@/components/atoms/inputs/app-input";
 import Link from "next/link";
-import { useState } from "react";
+import { useReducer } from "react";
+import { supabase } from "@/utils/supabase/client";
+import { useRouter } from "next/navigation";
+import Cookies from "js-cookie";
+import { formatAuthError } from "@/utils/format-auth-error";
+import { revalidatePath } from "next/cache";
+type InitialState = {
+  email: {
+    value: string;
+    error: string;
+    blur: boolean;
+  };
+  password: { value: string; error: string; blur: boolean };
+  loading: boolean;
+  error: string;
+};
+const initialState: InitialState = {
+  email: { value: "", error: "", blur: false },
+  password: { value: "", error: "", blur: false },
+  loading: false,
+  error: "",
+};
+type Action =
+  | { type: "email"; payload: { value: string; error: string; blur: boolean } }
+  | {
+      type: "password";
+      payload: { value: string; error: string; blur: boolean };
+    }
+  | { type: "loading"; payload: boolean }
+  | { type: "error"; payload: string };
+const reducer = (state: InitialState, action: Action): InitialState => {
+  switch (action.type) {
+    case "email":
+      return {
+        ...state,
+        email: {
+          ...state.email,
+          value: action.payload.value,
+          error: action.payload.error,
+          blur: action.payload.blur,
+        },
+      };
+    case "password":
+      return {
+        ...state,
+        password: {
+          ...state.password,
+          value: action.payload.value,
+          error: action.payload.error,
+          blur: action.payload.blur,
+        },
+      };
+    case "loading":
+      return { ...state, loading: action.payload };
+    case "error":
+      return { ...state, error: action.payload };
+    default:
+      return state;
+  }
+};
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [state, dispatch] = useReducer(reducer, initialState);
+  const router = useRouter();
+  const submitForm = async (e: React.FormEvent) => {
+    e.preventDefault();
+    let formIsValid = true;
+    if (state.email.value.trim() === "") {
+      dispatch({
+        type: "email",
+        payload: {
+          value: state.email.value,
+          error: "Can't be empty",
+          blur: true,
+        },
+      });
+      formIsValid = false;
+    } else if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.email.value) === false) {
+      dispatch({
+        type: "email",
+        payload: {
+          value: state.email.value,
+          error: "Please check again",
+          blur: true,
+        },
+      });
+      formIsValid = false;
+    } else {
+      dispatch({
+        type: "email",
+        payload: {
+          value: state.email.value,
+          error: "",
+          blur: true,
+        },
+      });
+    }
+
+    if (state.password.value.trim() === "") {
+      dispatch({
+        type: "password",
+        payload: {
+          value: state.password.value,
+          error: "Can't be empty",
+          blur: true,
+        },
+      });
+      formIsValid = false;
+    } else if (state.password.value.trim().length < 8) {
+      dispatch({
+        type: "password",
+        payload: {
+          value: state.password.value,
+          error: "At least 8 characters",
+          blur: true,
+        },
+      });
+      formIsValid = false;
+    } else {
+      dispatch({
+        type: "password",
+        payload: {
+          value: state.password.value,
+          error: "",
+          blur: true,
+        },
+      });
+    }
+    if (!formIsValid) return;
+
+    dispatch({ type: "loading", payload: true });
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: state.email.value,
+        password: state.password.value,
+      });
+      dispatch({ type: "loading", payload: false });
+
+      if (error) {
+        dispatch({ type: "error", payload: formatAuthError(error.message) });
+        throw error;
+      }
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+      console.log("Current session:", session); // Check the session state
+      if (data.user) {
+        console.log("User logged in:", data.user);
+        router.push("/");
+      }
+
+      // revalidatePath("/");
+      // redirect("/");
+    } catch (error) {
+      // console.error(error);
+    }
+    // revalidatePath("/");
+    //
+    console.log("Login successful");
+  };
   return (
     <form className="bg-white flex flex-col items-start w-full sm:w-fit sm:p-10 gap-10">
       <div className="flex flex-col gap-2">
@@ -20,11 +176,35 @@ export default function LoginPage() {
         <AppInput
           id="email"
           title="Email address"
-          value={email}
+          value={state.email.value}
           type="email"
           placeholder="e.g. alex@email.com"
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) =>
+            dispatch({
+              type: "email",
+              payload: {
+                value: e.target.value,
+                error:
+                  e.target.value.trim() === ""
+                    ? "Can't be empty"
+                    : /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.target.value)
+                    ? ""
+                    : "Please check again",
+                blur: state.email.blur,
+              },
+            })
+          }
           hasIcon={true}
+          onBlur={() =>
+            dispatch({
+              type: "email",
+              payload: {
+                value: state.email.value,
+                error: state.email.error,
+                blur: true,
+              },
+            })
+          }
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -43,8 +223,33 @@ export default function LoginPage() {
           type="password"
           id="password"
           title="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          value={state.password.value}
+          blur={state.password.blur}
+          onChange={(e) =>
+            dispatch({
+              type: "password",
+              payload: {
+                value: e.target.value,
+                error:
+                  e.target.value.trim() === ""
+                    ? "Can't be empty"
+                    : e.target.value.trim().length < 8
+                    ? "At least 8 characters"
+                    : "",
+                blur: state.password.blur,
+              },
+            })
+          }
+          onBlur={() =>
+            dispatch({
+              type: "password",
+              payload: {
+                value: state.password.value,
+                error: state.password.error,
+                blur: true,
+              },
+            })
+          }
           hasIcon={true}
           placeholder="Enter your password"
         >
@@ -61,7 +266,12 @@ export default function LoginPage() {
             />
           </svg>
         </AppInput>
-        <AppButton value="Login" />
+        <AppButton
+          value="Login"
+          type="submit"
+          onSubmit={submitForm}
+          loading={state.loading}
+        />
         <p className="text-center text-grey text-body-m mx-auto">
           Don’t have an account?{" "}
           <Link href="/sign-up" className="text-purple">
