@@ -4,12 +4,13 @@ import { Card } from "../molecules/card";
 import { OutlinedButton } from "../atoms/buttons/outline-button";
 import { AppButton } from "../atoms/buttons/app-button";
 import Image from "next/image";
-
+import { supabase } from "@/utils/supabase/client";
 export const HomePage: FC = () => {
   const [links, setLinks] = useState<
     { platform: string; link: string; dropdown: boolean }[]
   >([]);
-
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const addNewLink = () => {
     setLinks((prevLinks) => [
       ...prevLinks,
@@ -56,9 +57,43 @@ export const HomePage: FC = () => {
   };
 
   useEffect(() => {
-    console.log(links);
-  }, [links]);
-
+    const fetchData = async () => {
+      const { data, error } = await supabase.from("links").select();
+      console.log(data);
+      console.log(error);
+    };
+    fetchData();
+    //  const { data, error } = await supabase.from("links");
+  }, []);
+  const submitHandler = async () => {
+    const links_: { platform: string; link: string }[] = [];
+    for (let link_ of links) {
+      links_.push({ link: link_.link, platform: link_.platform });
+    }
+    setLoading(true);
+    const user = await supabase.auth.getUser();
+    const id = user.data.user?.id;
+    const linksData = links_.map(({ platform, link }) => ({
+      link,
+      platform,
+      user_id: id,
+    }));
+    console.log(links_);
+    const { data, error } = await supabase
+      .from("links")
+      .insert(linksData)
+      .single();
+    //.single();
+    console.log(data);
+    console.log(error);
+    setLoading(false);
+    if (error) {
+      console.log(error);
+      setLoading(false);
+    } else {
+      console.log(data);
+    }
+  };
   return (
     <Fragment>
       <div className="px-6 sm:px-10">
@@ -117,6 +152,8 @@ export const HomePage: FC = () => {
         <div className="bg-borders h-[1px] w-full"></div>
         <div className="px-6 sm:px-10 py-3 flex flex-col sm:self-end w-full relative z-50 sm:w-fit items-stretch">
           <AppButton
+            onClick={submitHandler}
+            loading={loading}
             value="Save"
             className="!w-full"
             disabled={links.length < 1}

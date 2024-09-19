@@ -1,16 +1,39 @@
 "use client";
-import { FC, useState } from "react";
+import { FC, useState, useEffect } from "react";
 import { HomeWrapper } from "@/components/molecules/home-wrapper";
 import { AppInput } from "@/components/atoms/inputs/app-input";
 import { AppButton } from "@/components/atoms/buttons/app-button";
+import { supabase } from "@/utils/supabase/client";
+import { useRouter } from "next/navigation";
 const ProfileDetailsPage: FC = () => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
+  const router = useRouter();
+  // const user = supabase.auth.getUser();
+  //const user = supabase.auth.getUser();
+  useEffect(() => {
+    const fetchUser = async () => {
+      const user = await supabase.auth.getUser();
+      console.log("from page.tsx", user);
+      if (!user) {
+        router.push("/login");
+      }
+    };
+    fetchUser();
+  }, [router]);
+  const logout = async () => {
+    await supabase.auth.signOut();
+    router.push("/login");
+  };
+
   return (
     <HomeWrapper>
       <div className=" px-6 sm:px-10 ">
-        <h1 className="text-heading-m text-dark-grey">Profile Details</h1>
+        <button onClick={logout} className="text-red text-body-m border">
+          Logout
+        </button>
+        <h1 className="text-heading-m text-dark-grey">Profile Details {}</h1>
         <p className="text-grey text-body-m">
           Add your details to create a personal touch to your profile.
         </p>

@@ -7,7 +7,6 @@ import { supabase } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import { formatAuthError } from "@/utils/format-auth-error";
-import { revalidatePath } from "next/cache";
 type InitialState = {
   email: {
     value: string;
@@ -143,30 +142,19 @@ export default function LoginPage() {
         dispatch({ type: "error", payload: formatAuthError(error.message) });
         throw error;
       }
-      const {
-        data: { session },
-        error: sessionError,
-      } = await supabase.auth.getSession();
-      console.log("Current session:", session); // Check the session state
-      if (data.user) {
-        console.log("User logged in:", data.user);
+
+      if (!error) {
         router.push("/");
       }
-
-      // revalidatePath("/");
-      // redirect("/");
     } catch (error) {
-      // console.error(error);
+      console.log(error);
     }
-    // revalidatePath("/");
-    //
-    console.log("Login successful");
   };
   return (
     <form className="bg-white flex flex-col items-start w-full sm:w-fit sm:p-10 gap-10">
       <div className="flex flex-col gap-2">
         <h1 className="text-dark-grey !text-2xl text-heading-m  sm:text-heading-m">
-          Login
+          Login s
         </h1>
         <p className="text-grey text-body-m">
           Add your details below to get back into the app
@@ -177,15 +165,15 @@ export default function LoginPage() {
           id="email"
           title="Email address"
           value={state.email.value}
+          blur={state.email.blur}
           type="email"
-          placeholder="e.g. alex@email.com"
           onChange={(e) =>
             dispatch({
               type: "email",
               payload: {
                 value: e.target.value,
                 error:
-                  e.target.value.trim() === ""
+                  e.target.value === ""
                     ? "Can't be empty"
                     : /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.target.value)
                     ? ""
@@ -194,8 +182,7 @@ export default function LoginPage() {
               },
             })
           }
-          hasIcon={true}
-          onBlur={() =>
+          onBlur={(e) =>
             dispatch({
               type: "email",
               payload: {
@@ -205,6 +192,10 @@ export default function LoginPage() {
               },
             })
           }
+          hasIcon={true}
+          hasError={state.email.error.length > 0}
+          errorValue={state.email.error}
+          placeholder="e.g.ben@example.com"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -223,6 +214,7 @@ export default function LoginPage() {
           type="password"
           id="password"
           title="Password"
+          placeholder="At least 8 characters"
           value={state.password.value}
           blur={state.password.blur}
           onChange={(e) =>
@@ -240,7 +232,7 @@ export default function LoginPage() {
               },
             })
           }
-          onBlur={() =>
+          onBlur={(e) =>
             dispatch({
               type: "password",
               payload: {
@@ -251,7 +243,8 @@ export default function LoginPage() {
             })
           }
           hasIcon={true}
-          placeholder="Enter your password"
+          hasError={state.password.error.length > 0}
+          errorValue={state.password.error}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -272,6 +265,11 @@ export default function LoginPage() {
           onSubmit={submitForm}
           loading={state.loading}
         />
+        {state.error && (
+          <p className="text-red text-body-m text-center flex justify-center w-full">
+            {state.error}
+          </p>
+        )}
         <p className="text-center text-grey text-body-m mx-auto">
           Don’t have an account?{" "}
           <Link href="/sign-up" className="text-purple">

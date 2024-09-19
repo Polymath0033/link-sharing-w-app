@@ -1,8 +1,20 @@
 import { HomeWrapper } from "@/components/molecules/home-wrapper";
 import { HomePage } from "@/components/molecules/home";
-export default function Home() {
+import { createClient } from "@/utils/supabase/server";
+import { redirect } from "next/navigation";
+
+export default async function Home() {
+  //const user = await supabase.auth.getUser();
+
+  const supabase = createClient();
+  const user = await supabase.auth.getUser();
+  console.log("from page.tsx", user);
+  if (!user) {
+    redirect("/login");
+  }
   return (
     <HomeWrapper>
+      hello{user.data.user?.email}
       <HomePage />
     </HomeWrapper>
   );
