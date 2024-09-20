@@ -1,23 +1,37 @@
 "use client";
-import { FC, Fragment, useEffect, useState } from "react";
+import { FC, Fragment, useEffect, useState, useCallback } from "react";
 import { Card } from "../molecules/card";
 import { OutlinedButton } from "../atoms/buttons/outline-button";
 import { AppButton } from "../atoms/buttons/app-button";
 import Image from "next/image";
 import { supabase } from "@/utils/supabase/client";
 import { toast } from "react-toastify";
+import { selectIcons } from "@/utils/icon";
+import { SelectIcon } from "@/types/select-icon";
+import { LinksType } from "@/types/links";
+import { useAppDispatch, useAppSelector } from "@/hooks/redux";
+import { urlPrefixes } from "@/utils/url-prefixes";
+import { addLinks, fetchLinks, fetchUser } from "@/redux/thunk-functions";
 export const HomePage: FC = () => {
-  const [links_, setLinks_] = useState<
-    { platform: string; link: string | "Github"; dropdown: boolean }[]
-  >([]);
+  const dispatch = useAppDispatch();
+  const linkStore = useAppSelector((state) => state.links.links);
+  const [links_, setLinks_] = useState<LinksType[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [data_, setData_] = useState(null);
+
   const addNewLink = () => {
     setLinks_((prevLinks) => [
       ...prevLinks,
-      { platform: "", link: "", dropdown: false },
-    ]); // Immutable update
+      {
+        platform: "",
+        link: "",
+        dropdown: false,
+        blur: false,
+        error: "",
+        placeholder: "",
+      },
+    ]);
   };
 
   const updateLink = (index: number, newLink: string) => {
@@ -36,7 +50,6 @@ export const HomePage: FC = () => {
   };
   const updateDropdown = (index: number) => {
     const updatedLinks = links_.map((link, i) => {
-      console.log(i === index);
       if (i === index) {
         return { ...link, dropdown: !link.dropdown };
       } else {
@@ -53,55 +66,126 @@ export const HomePage: FC = () => {
       )
     );
   };
-
+  const updateBlur = (index: number) => {
+    setLinks_((prevLinks) =>
+      prevLinks.map((link, i) => (i === index ? { ...link, blur: true } : link))
+    );
+  };
   const removeLink = (index: number) => {
     setLinks_((prevLinks) => prevLinks.filter((_, i) => i !== index));
   };
 
-  const submitHandler = async () => {
-    const _links: { platform: string; link: string }[] = [];
-    for (let link_ of links_) {
-      if (link_.platform === "") {
-        _links.push({ link: link_.link, platform: "Github" });
-      } else {
-        _links.push({ link: link_.link, platform: link_.platform });
-      }
-    }
-    //  setLoading(true);
-    const user = await supabase.auth.getUser();
-    const id = user.data.user?.id;
+  useEffect(() => {
+    const modifyLinksPlaceholder = () => {
+      const _links = links_.map((link) => {
+        return {
+          ...link,
+          placeholder:
+            urlPrefixes[link.platform as keyof typeof urlPrefixes] ||
+            "https://github.com/",
+        };
+      });
+      setLinks_((prevLinks) => {
+        // Only update the state if the new links are different from the previous ones
+        const hasChanges = _links.some(
+          (link, index) => link.placeholder !== prevLinks[index].placeholder
+        );
+        return hasChanges ? _links : prevLinks;
+      });
+    };
 
-    console.log(links_);
-    const { data: links, error } = await supabase
-      .from("links")
-      .insert(_links)
-      .select();
-    //let { data: links, error } = await supabase.from("links").select("*");
-    //.select("*");
-    //  console.log(fetch);
-    console.log(links);
-    console.log(links);
-    console.log(error);
-    setLoading(false);
-    if (error) {
+    modifyLinksPlaceholder();
+  }, [links_, urlPrefixes]);
+  useEffect(() => {
+    // dispatch(fetchUser());
+    // console.log("auth", auth);
+    const fetchUserData = async () => {
+      const user = await dispatch(fetchUser());
+    };
+    fetchUserData();
+  }, []);
+  // useEffect(() => {
+  //   const fetchLinks = async () => {
+  //     const user = await supabase.auth.getUser();
+  //     const id = user.data.user?.id;
+  //     const { data, error } = await supabase
+  //       .from("links")
+  //       .select("*")
+  //       .eq("user_id", id);
+  //     if (error) {
+  //       console.log(error);
+  //       // setError(error);
+  //     } else {
+  //       console.log(data);
+  //     }
+  //   };
+  //   fetchLinks();
+  // }, []);
+  const submitHandler = async () => {
+    let isValid = true;
+    //const regex = new RegExp()
+    const _links = links_.map((link) => {
+      return {
+        ...link,
+        platform: link.platform === "" ? "Github" : link.platform,
+      };
+    });
+    _links.forEach((link) => {
+      if (link.link.trim() === "") {
+        isValid = false;
+        return { ...link, error: "Can't be empty", blur: true };
+      } else {
+        return { ...link, error: "", blur: true };
+      }
+    });
+    _links.forEach((link) => {
+      if (
+        new RegExp(`${urlPrefixes[link.platform]}`).test(link.link) === false
+      ) {
+        isValid = false;
+        link.error = "Enter a valid link that matches the platform";
+        link.blur = true;
+      } else {
+        link.error = "";
+        link.blur = true;
+      }
+    });
+    setLinks_(_links);
+    if (!isValid) {
+      return;
+    }
+    setLoading(true);
+    try {
+      const user = await dispatch(fetchUser());
+      const id = (user.payload as { id: string })?.id;
+      console.log("id", id);
+      const linksData: { platform: string; link: string; user_id: string }[] =
+        [];
+      for (let link_ of links_) {
+        if (id) {
+          linksData.push({
+            link: link_.link,
+            platform: link_.platform,
+            user_id: id,
+          });
+        }
+      }
+      // console.log(linksData);
+      await dispatch(addLinks(linksData));
+      const userLinks = await dispatch(fetchLinks({ user_id: id }));
+      console.log("userLinks", userLinks);
+      setLoading(false);
+
+      //  console.log("links", linkStore);
+    } catch (error) {
       console.log(error);
       setLoading(false);
-    } else {
-      console.log(links);
     }
-  };
-  const clickToast = () => {
-    console.log("clicked");
-    console.log(toast);
-    toast.success("success!");
   };
   return (
     <Fragment>
       <div className="px-6 sm:px-10">
-        <h1 className="text-heading-m text-dark-grey">
-          Customize your links{" "}
-          <button onClick={() => clickToast()}>test the toast</button>
-        </h1>
+        <h1 className="text-heading-m text-dark-grey">Customize your links </h1>
         <p className="text-grey text-body-m">
           Add/edit/remove links below and then share all your profiles with the
           world!
@@ -137,9 +221,7 @@ export const HomePage: FC = () => {
             <Card
               key={index}
               index={index}
-              platform={link.platform}
-              link={link.link}
-              dropdown={link.dropdown}
+              links={link}
               onUpdatePlatform={(newPlatform: string) =>
                 updatePlatform(index, newPlatform)
               }
@@ -147,6 +229,7 @@ export const HomePage: FC = () => {
               removeLink={() => removeLink(index)}
               updateDropdown={() => updateDropdown(index)}
               closeDropdown={() => closeDropdown(index)}
+              onBlur={() => updateBlur(index)}
             />
           ))
         )}

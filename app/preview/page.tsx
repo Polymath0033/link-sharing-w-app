@@ -1,12 +1,31 @@
-import { FC } from "react";
+"use client";
+import { FC, useEffect } from "react";
 import { AppButton } from "@/components/atoms/buttons/app-button";
 import { OutlinedButton } from "@/components/atoms/buttons/outline-button";
+import { supabase } from "@/utils/supabase/client";
+import Link from "next/link";
 const PreviewPage: FC = () => {
+  useEffect(() => {
+    // const {data,error}=supabase.from("links").select("*");
+    const fetchLinks = async () => {
+      const { data, error } = await supabase
+        .from("links")
+        .select()
+        .eq("user_id", "5c13442b-d4cf-4438-b5a6-da1a56a79f95");
+      if (error) {
+        console.log(error);
+      }
+      console.log(data);
+    };
+    fetchLinks();
+  }, []);
   return (
     <div className="relative bg-white sm:bg-inherit h-screen sm:h-full">
       <div className="bg-purple hidden sm:block absolute top-0 left-0 w-full rounded-br-[32px] rounded-bl-[32px] h-[357px] "></div>
       <header className=" h-16 sm:bg-white flex justify-between relative top-4 left-0 w-full sm:top-6 sm:left-6 sm:w-[calc(100%_-_48px)] items-center py-0 sm:p-4 px-6 sm:pl-6 sm:rounded-xl">
-        <OutlinedButton value="Back to Editor" />
+        <Link href="/">
+          <OutlinedButton value="Back to Editor" />
+        </Link>
         <AppButton value="Share link" className="!w-fit" />
       </header>
       <section className="sm:shadow-box-shadow flex gap-2 py-12 px-14 bg-white relative mx-auto rounded-3xl mt-[106px] h-fit z-10 w-[349px] sm:mb-16">

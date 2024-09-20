@@ -13,7 +13,6 @@ export default async function Home() {
   }
   return (
     <HomeWrapper>
-      hello{user.data.user?.email}
       <HomePage />
     </HomeWrapper>
   );

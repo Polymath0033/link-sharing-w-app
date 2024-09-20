@@ -1,0 +1,16 @@
+export const urlPrefixes: { [key: string]: string } = {
+  Github: "https://github.com/",
+  YouTube: "https://www.youtube.com/",
+  LinkedIn: "https://www.linkedin.com/",
+  Twitter: "https://twitter.com/",
+  Facebook: "https://www.facebook.com/",
+  "Frontend Mentor": "https://www.frontendmentor.io/",
+  freeCodeCamp: "https://www.freecodecamp.org/",
+  Gitlab: "https://gitlab.com/",
+  CodePen: "https://codepen.io/",
+  Codewars: "https://www.codewars.com/",
+  Twitch: "https://www.twitch.tv/",
+  "Stack Overflow": "https://stackoverflow.com/",
+  "Dev To": "https://dev.to/",
+  Hashnode: "https://hashnode.com/",
+};

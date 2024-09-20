@@ -2,26 +2,26 @@
 import { FC, useState } from "react";
 import { AppSelect } from "../atoms/inputs/app-select";
 import { AppInput } from "../atoms/inputs/app-input";
+import { LinksType } from "@/types/links";
+
 export const Card: FC<{
-  platform: string;
-  link: string;
   index: number;
+  links: LinksType;
   onUpdatePlatform: (platform: string) => void;
   onUpdateLink: (link: string) => void;
   removeLink: () => void;
   updateDropdown: () => void;
-  dropdown: boolean;
+  onBlur: () => void;
   closeDropdown: () => void;
 }> = ({
-  platform,
-  link,
   onUpdatePlatform,
   onUpdateLink,
   index,
   removeLink,
   updateDropdown,
-  dropdown,
+  onBlur,
   closeDropdown,
+  links,
 }) => {
   const [selectedLink, setSelectedLink] = useState<string>("");
   const selectedLinkHandler = (value: string) => {
@@ -49,9 +49,9 @@ export const Card: FC<{
         </button>
       </div>
       <AppSelect
-        platform={platform}
+        platform={links.platform}
         onSelect={onUpdatePlatform}
-        dropdown={dropdown}
+        dropdown={links.dropdown}
         closeDropdown={closeDropdown}
         dropdownHandler={updateDropdown}
       />
@@ -59,11 +59,15 @@ export const Card: FC<{
         id="link"
         title="Link"
         type="url"
-        value={link}
+        value={links.link}
         onChange={(e) => onUpdateLink(e.target.value)}
-        placeholder="https://example.com"
+        placeholder={`${links.placeholder}username`}
         required
         hasIcon
+        blur={links.blur}
+        errorValue={links.error}
+        hasError={links.error.length > 0}
+        onBlur={onBlur}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"

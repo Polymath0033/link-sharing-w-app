@@ -1,39 +1,151 @@
 "use client";
-import { FC, useState, useEffect } from "react";
+import { FC, useState, useEffect, useReducer } from "react";
 import { HomeWrapper } from "@/components/molecules/home-wrapper";
 import { AppInput } from "@/components/atoms/inputs/app-input";
 import { AppButton } from "@/components/atoms/buttons/app-button";
 import { supabase } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
-const ProfileDetailsPage: FC = () => {
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
-  const router = useRouter();
-  // const user = supabase.auth.getUser();
-  //const user = supabase.auth.getUser();
-  useEffect(() => {
-    const fetchUser = async () => {
-      const user = await supabase.auth.getUser();
-      console.log("from page.tsx", user);
-      if (!user) {
-        router.push("/login");
-      }
-    };
-    fetchUser();
-  }, [router]);
-  const logout = async () => {
-    await supabase.auth.signOut();
-    router.push("/login");
+type InitialState = {
+  email: {
+    value: string;
+    error: string;
+    blur: boolean;
   };
-
+  firstName: {
+    value: string;
+    error: string;
+    blur: boolean;
+  };
+  lastName: {
+    value: string;
+    error: string;
+    blur: boolean;
+  };
+  loading: boolean;
+  error: string;
+};
+const initialState: InitialState = {
+  email: { value: "", error: "", blur: false },
+  firstName: { value: "", error: "", blur: false },
+  lastName: { value: "", error: "", blur: false },
+  loading: false,
+  error: "",
+};
+type Action =
+  | { type: "email"; payload: { value: string; error: string; blur: boolean } }
+  | {
+      type: "firstName";
+      payload: { value: string; error: string; blur: boolean };
+    }
+  | {
+      type: "lastName";
+      payload: { value: string; error: string; blur: boolean };
+    }
+  | { type: "loading"; payload: boolean }
+  | { type: "error"; payload: string };
+const reducer = (state: InitialState, action: Action): InitialState => {
+  switch (action.type) {
+    case "email":
+      return {
+        ...state,
+        email: {
+          ...state.email,
+          value: action.payload.value,
+          error: action.payload.error,
+          blur: action.payload.blur,
+        },
+      };
+    case "firstName":
+      return {
+        ...state,
+        firstName: {
+          ...state.firstName,
+          value: action.payload.value,
+          error: action.payload.error,
+          blur: action.payload.blur,
+        },
+      };
+    case "lastName":
+      return {
+        ...state,
+        lastName: {
+          ...state.lastName,
+          value: action.payload.value,
+          error: action.payload.error,
+          blur: action.payload.blur,
+        },
+      };
+    case "loading":
+      return { ...state, loading: action.payload };
+    case "error":
+      return { ...state, error: action.payload };
+    default:
+      return state;
+  }
+};
+const ProfileDetailsPage: FC = () => {
+  const [state, dispatch] = useReducer(reducer, initialState);
+  const submitProfileDetails = async () => {
+    let isFormValid = true;
+    if (state.firstName.value.trim() === "") {
+      isFormValid = false;
+      dispatch({
+        type: "firstName",
+        payload: {
+          value: state.firstName.value,
+          error: "Can't be empty",
+          blur: true,
+        },
+      });
+    }
+    if (state.lastName.value.trim() === "") {
+      isFormValid = false;
+      dispatch({
+        type: "lastName",
+        payload: {
+          value: state.lastName.value,
+          error: "Can't be empty",
+          blur: true,
+        },
+      });
+    }
+    if (
+      state.email.value.trim() !== "" &&
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.email.value)
+    ) {
+      isFormValid = false;
+      dispatch({
+        type: "email",
+        payload: {
+          value: state.email.value,
+          error: "Please check again",
+          blur: true,
+        },
+      });
+    }
+    if (!isFormValid) {
+      return;
+    }
+    console.log(state);
+    // dispatch({ type: "loading", payload: true });
+    // const { data, error } = await supabase.from("profiles").upsert([
+    //   {
+    //     email: state.email.value,
+    //     first_name: state.firstName.value,
+    //     last_name: state.lastName.value,
+    //   },
+    // ]);
+    // if (error) {
+    //   dispatch({ type: "error", payload: error.message });
+    // } else {
+    //   dispatch({ type: "loading", payload: false });
+    //   router.push("/home");
+    // }
+  };
   return (
     <HomeWrapper>
       <div className=" px-6 sm:px-10 ">
-        <button onClick={logout} className="text-red text-body-m border">
-          Logout
-        </button>
-        <h1 className="text-heading-m text-dark-grey">Profile Details {}</h1>
+        <h1 className="text-heading-m text-dark-grey">Profile Details </h1>
         <p className="text-grey text-body-m">
           Add your details to create a personal touch to your profile.
         </p>
@@ -70,31 +182,103 @@ const ProfileDetailsPage: FC = () => {
             <p className="text-grey text-body-m w-[220px]">First Name*</p>
             <AppInput
               className="[flex:1_0_0]"
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
               id="first-name"
               placeholder="e.g John"
+              value={state.firstName.value}
+              blur={state.firstName.blur}
+              onChange={(e) =>
+                dispatch({
+                  type: "firstName",
+                  payload: {
+                    value: e.target.value,
+                    error: e.target.value.trim() === "" ? "Can't be empty" : "",
+                    blur: state.firstName.blur,
+                  },
+                })
+              }
+              required
+              onBlur={() =>
+                dispatch({
+                  type: "firstName",
+                  payload: {
+                    value: state.firstName.value,
+                    error: state.firstName.error,
+                    blur: true,
+                  },
+                })
+              }
+              errorValue={state.firstName.error}
+              hasError={state.firstName.error.length > 0}
             />
           </div>
           <div className="flex flex-col sm:flex-row items-start justify-center sm:items-center self-stretch gap-2 sm:gap-4">
             <p className="text-grey text-body-m w-[220px]">Last Name*</p>
             <AppInput
               className="[flex:1_0_0]"
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
+              value={state.lastName.value}
+              onChange={(e) =>
+                dispatch({
+                  type: "lastName",
+                  payload: {
+                    value: e.target.value,
+                    error: e.target.value.trim() === "" ? "Can't be empty" : "",
+                    blur: state.lastName.blur,
+                  },
+                })
+              }
               id="last-name"
               placeholder="e.g. Appleseed"
+              required
+              blur={state.lastName.blur}
+              onBlur={() =>
+                dispatch({
+                  type: "lastName",
+                  payload: {
+                    value: state.lastName.value,
+                    error: state.lastName.error,
+                    blur: true,
+                  },
+                })
+              }
+              errorValue={state.lastName.error}
+              hasError={state.lastName.error.length > 0}
             />
           </div>
           <div className="flex flex-col sm:flex-row items-start justify-center sm:items-center self-stretch gap-2 sm:gap-4 ">
             <p className="text-grey text-body-m w-[220px]">Email</p>
             <AppInput
               className="[flex:1_0_0]"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={state.email.value}
+              onChange={(e) =>
+                dispatch({
+                  type: "email",
+                  payload: {
+                    value: e.target.value,
+                    error:
+                      e.target.value.trim() !== "" &&
+                      /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.email.value)
+                        ? "Please check again"
+                        : "",
+                    blur: state.email.blur,
+                  },
+                })
+              }
               id="email"
               placeholder="e.g. email@example.com"
               type="email"
+              blur={state.email.blur}
+              errorValue={state.email.error}
+              hasError={state.email.error.length > 0}
+              onBlur={() =>
+                dispatch({
+                  type: "email",
+                  payload: {
+                    value: state.email.value,
+                    error: state.email.error,
+                    blur: true,
+                  },
+                })
+              }
             />
           </div>
         </div>
@@ -102,7 +286,7 @@ const ProfileDetailsPage: FC = () => {
       <div className="flex flex-col justify-end self-stretch items-start pt-10">
         <div className="bg-borders h-[1px] w-full"></div>
         <div className="px-6 sm:px-10 py-3 flex flex-col self-end items-stretch">
-          <AppButton value="Save" />
+          <AppButton onClick={submitProfileDetails} value="Save" />
         </div>
       </div>
 

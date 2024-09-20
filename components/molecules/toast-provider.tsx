@@ -10,11 +10,13 @@ export const ToastProvider: FC<{ children: React.ReactNode }> = ({
       {children}
       <ToastContainer
         position="top-right"
-        autoClose={5000}
+        autoClose={3000}
         closeOnClick
         rtl={false}
         pauseOnHover
         draggable
+        newestOnTop={false}
+        pauseOnFocusLoss
       />
     </>
   );
