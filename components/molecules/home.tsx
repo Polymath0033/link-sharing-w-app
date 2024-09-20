@@ -5,35 +5,37 @@ import { OutlinedButton } from "../atoms/buttons/outline-button";
 import { AppButton } from "../atoms/buttons/app-button";
 import Image from "next/image";
 import { supabase } from "@/utils/supabase/client";
+import { toast } from "react-toastify";
 export const HomePage: FC = () => {
-  const [links, setLinks] = useState<
-    { platform: string; link: string; dropdown: boolean }[]
+  const [links_, setLinks_] = useState<
+    { platform: string; link: string | "Github"; dropdown: boolean }[]
   >([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [data_, setData_] = useState(null);
   const addNewLink = () => {
-    setLinks((prevLinks) => [
+    setLinks_((prevLinks) => [
       ...prevLinks,
       { platform: "", link: "", dropdown: false },
     ]); // Immutable update
   };
 
   const updateLink = (index: number, newLink: string) => {
-    setLinks((prevLinks) =>
+    setLinks_((prevLinks) =>
       prevLinks.map((link, i) =>
         i === index ? { ...link, link: newLink } : link
       )
     );
   };
   const updatePlatform = (index: number, newPlatform: string) => {
-    setLinks((prevLinks) =>
+    setLinks_((prevLinks) =>
       prevLinks.map((link, i) =>
         i === index ? { ...link, platform: newPlatform } : link
       )
     );
   };
   const updateDropdown = (index: number) => {
-    const updatedLinks = links.map((link, i) => {
+    const updatedLinks = links_.map((link, i) => {
       console.log(i === index);
       if (i === index) {
         return { ...link, dropdown: !link.dropdown };
@@ -42,10 +44,10 @@ export const HomePage: FC = () => {
       }
     });
 
-    setLinks(updatedLinks);
+    setLinks_(updatedLinks);
   };
   const closeDropdown = (index: number) => {
-    setLinks((prevLinks) =>
+    setLinks_((prevLinks) =>
       prevLinks.map((link, i) =>
         i === index ? { ...link, dropdown: false } : link
       )
@@ -53,51 +55,53 @@ export const HomePage: FC = () => {
   };
 
   const removeLink = (index: number) => {
-    setLinks((prevLinks) => prevLinks.filter((_, i) => i !== index));
+    setLinks_((prevLinks) => prevLinks.filter((_, i) => i !== index));
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const { data, error } = await supabase.from("links").select();
-      console.log(data);
-      console.log(error);
-    };
-    fetchData();
-    //  const { data, error } = await supabase.from("links");
-  }, []);
   const submitHandler = async () => {
-    const links_: { platform: string; link: string }[] = [];
-    for (let link_ of links) {
-      links_.push({ link: link_.link, platform: link_.platform });
+    const _links: { platform: string; link: string }[] = [];
+    for (let link_ of links_) {
+      if (link_.platform === "") {
+        _links.push({ link: link_.link, platform: "Github" });
+      } else {
+        _links.push({ link: link_.link, platform: link_.platform });
+      }
     }
-    setLoading(true);
+    //  setLoading(true);
     const user = await supabase.auth.getUser();
     const id = user.data.user?.id;
-    const linksData = links_.map(({ platform, link }) => ({
-      link,
-      platform,
-      user_id: id,
-    }));
+
     console.log(links_);
-    const { data, error } = await supabase
+    const { data: links, error } = await supabase
       .from("links")
-      .insert(linksData)
-      .single();
-    //.single();
-    console.log(data);
+      .insert(_links)
+      .select();
+    //let { data: links, error } = await supabase.from("links").select("*");
+    //.select("*");
+    //  console.log(fetch);
+    console.log(links);
+    console.log(links);
     console.log(error);
     setLoading(false);
     if (error) {
       console.log(error);
       setLoading(false);
     } else {
-      console.log(data);
+      console.log(links);
     }
+  };
+  const clickToast = () => {
+    console.log("clicked");
+    console.log(toast);
+    toast.success("success!");
   };
   return (
     <Fragment>
       <div className="px-6 sm:px-10">
-        <h1 className="text-heading-m text-dark-grey">Customize your links</h1>
+        <h1 className="text-heading-m text-dark-grey">
+          Customize your links{" "}
+          <button onClick={() => clickToast()}>test the toast</button>
+        </h1>
         <p className="text-grey text-body-m">
           Add/edit/remove links below and then share all your profiles with the
           world!
@@ -109,7 +113,7 @@ export const HomePage: FC = () => {
           value="+ Add new link"
           className="w-full"
         />
-        {links.length < 1 ? (
+        {links_.length < 1 ? (
           <div className="flex flex-col justify-center items-center p-5 gap-10 rounded-xl bg-light-grey h-full flex-1 w-full">
             <Image
               src="/images/illustration-empty.svg"
@@ -129,7 +133,7 @@ export const HomePage: FC = () => {
             </div>
           </div>
         ) : (
-          links.map((link, index) => (
+          links_.map((link, index) => (
             <Card
               key={index}
               index={index}
@@ -156,7 +160,7 @@ export const HomePage: FC = () => {
             loading={loading}
             value="Save"
             className="!w-full"
-            disabled={links.length < 1}
+            disabled={links_.length < 1}
           />
         </div>
       </div>

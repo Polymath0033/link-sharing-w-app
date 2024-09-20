@@ -8,7 +8,6 @@ export default async function Home() {
 
   const supabase = createClient();
   const user = await supabase.auth.getUser();
-  console.log("from page.tsx", user);
   if (!user) {
     redirect("/login");
   }
