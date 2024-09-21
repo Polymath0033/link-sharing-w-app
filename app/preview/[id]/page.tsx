@@ -60,7 +60,7 @@ const PreviewPageID: FC = ({}) => {
           >
             {isFetching ? (
               <div className="bg-[#EEE] h-24 w-24 rounded-[96px]"></div>
-            ) : user[0]?.image_url.length > 0 ? (
+            ) : user.length > 0 && user[0]?.image_url.length > 0 ? (
               <Image
                 src={user[0]?.image_url}
                 alt={user[0]?.first_name}
