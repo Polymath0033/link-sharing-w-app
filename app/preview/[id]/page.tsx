@@ -29,7 +29,7 @@ const PreviewPageID: FC = ({}) => {
       }
     };
     fetchData();
-  }, []);
+  }, [dispatch, id]);
   const copyLink = () => {
     navigator.clipboard.writeText(window.location.href);
     toast("Link copied to clipboard", {

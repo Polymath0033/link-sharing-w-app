@@ -6,5 +6,4 @@ export type UserData = {
   user_id: string;
   image_url: string;
   email: string;
-};
-[];
+}[];

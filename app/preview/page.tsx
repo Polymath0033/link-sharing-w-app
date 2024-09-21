@@ -10,7 +10,7 @@ const PreviewPage = () => {
     if (pathname === "/preview") {
       router.replace("/");
     }
-  }, [router]);
+  }, [router, pathname]);
 
   return null;
 };
