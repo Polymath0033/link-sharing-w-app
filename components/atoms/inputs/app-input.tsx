@@ -69,3 +69,17 @@ export const AppInput: FC<{
     </label>
   );
 };
+/**
+ * 
+ *         if (imageFile) {
+          const filePath = `user_image/${id}/${imageFile.name}`;
+          const { data, error } = await supabase.storage
+            .from("user_image") // Ensure the bucket name matches what you created in Supabase
+            .upload(filePath, imageFile, {
+              cacheControl: "3600",
+              upsert: false,
+            });
+          console.log(data, error);
+          dispatch({ type: "loading", payload: false });
+        }
+ */
