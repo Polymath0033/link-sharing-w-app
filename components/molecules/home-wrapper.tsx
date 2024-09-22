@@ -11,6 +11,7 @@ export const HomeWrapper: FC<{ children: React.ReactNode }> = ({
 }) => {
   const dispatch = useAppDispatch();
   const auth = useAppSelector((state) => state.auth.user);
+  const { user, isFetching } = useAppSelector((state) => state.user);
   useEffect(() => {
     const fetchUser_ = async () => {
       try {
@@ -33,7 +34,12 @@ export const HomeWrapper: FC<{ children: React.ReactNode }> = ({
           <div className="relative w-[307px] h-[631px]  flex items-center justify-center flex-col">
             <FrameOne />
             <FrameTwo />
-            <PhoneView />
+            <PhoneView
+              id={auth?.id}
+              user={user}
+              email={auth?.email}
+              isFetching={isFetching}
+            />
           </div>
         </section>
         <section className="flex flex-col relative items-start [flex:1_0_0] gap-10 bg-white h-full pt-10 pb-6 rounded-xl overflow-y-scroll no-scrollbar overflow-x-hidden md:scrollbar">

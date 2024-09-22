@@ -2,54 +2,44 @@
 import React, { FC, useEffect } from "react";
 import { PillBox } from "./pill-box";
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
-import {
-  fetchLinks,
-  fetchUser,
-  fetchUsersDetails,
-} from "@/redux/thunk-functions";
+import { fetchLinks } from "@/redux/thunk-functions";
 import Image from "next/image";
-export const PhoneView: FC = () => {
+import { UserData } from "@/types/user-data";
+export const PhoneView: FC<{
+  id: string | undefined;
+  user: UserData;
+  isFetching: boolean;
+  email: string | undefined;
+}> = ({ id, user, isFetching, email }) => {
   const dispatch = useAppDispatch();
   const { links, isLinksLoading } = useAppSelector((state) => state.links);
-  const { user, isAuthLoading } = useAppSelector((state) => state.auth);
-  const userDetails = useAppSelector((state) => state.user);
-
+  // const auth = useAppSelector((state) => state.auth);
   useEffect(() => {
+    //console.log(user?.id);
     const fetchLinks_ = async () => {
       try {
-        // const user = await dispatch(fetchUser());
-        //const id = (user.payload as { id: string })?.id;
-        if (user?.id) {
-          await dispatch(fetchLinks({ user_id: user.id }));
-          await dispatch(fetchUsersDetails(user.id));
+        if (id !== undefined) {
+          console.log(id);
+          await dispatch(fetchLinks({ user_id: id }));
+          //  await dispatch(fetchUsersDetails(id));
         }
       } catch (error) {}
     };
     fetchLinks_();
-  }, [dispatch, user?.id]);
-  // useEffect(() => {
-  //   const fetchUser_ = async () => {
-  //     try {
-  //       await dispatch(fetchUser());
-  //     } catch (error) {
-  //       console.log(error);
-  //     }
-  //   };
-  //   fetchUser_();
-  // }, [dispatch]);
+  }, [dispatch, id]);
   return (
     <div className=" absolute w-[calc(100%_-_24px)] h-[calc(100%_-_28px)] overflow-y-scroll no-scrollbar my-7 rounded-[50px] px-6 py-8 flex  items-center mt-7  flex-col gap-14 mx-6">
       <div
         className={`flex flex-col gap-[25px] items-center self-stretch ${
-          userDetails.isFetching && "animate-pulse"
+          isFetching && "animate-pulse"
         }`}
       >
-        {userDetails.isFetching ? (
+        {isFetching ? (
           <div className="bg-[#EEE] h-24 w-24 rounded-[96px]"></div>
-        ) : userDetails.user[0]?.image_url.length > 0 ? (
+        ) : user[0]?.image_url.length > 0 ? (
           <Image
-            src={userDetails.user[0]?.image_url}
-            alt={userDetails.user[0]?.first_name}
+            src={user[0]?.image_url}
+            alt={user[0]?.first_name}
             width={96}
             height={96}
             className="rounded-[96px] h-24 w-24 border-4 border-purple"
@@ -66,34 +56,25 @@ export const PhoneView: FC = () => {
             <circle cx="48.5" cy="48" r="48" fill="#EEEEEE" />
           </svg>
         )}
-        {/* <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="97"
-          height="96"
-          viewBox="0 0 97 96"
-          fill="none"
-        >
-          <circle cx="48.5" cy="48" r="48" fill="#EEEEEE" />
-        </svg> */}
         <div
           className={`flex flex-col ${
-            userDetails.isFetching ? "gap-[13px]" : "gap-2"
+            isFetching ? "gap-[13px]" : "gap-2"
           } items-center`}
         >
-          {userDetails.isFetching && (
+          {isFetching && (
             <div className="bg-[#EEE] rounded-[104px] h-4 w-40"></div>
           )}
-          {userDetails.isFetching === false && (
+          {isFetching === false && (
             <h6 className="text-dark-grey text-heading-s !text-lg">
-              {userDetails.user[0]?.first_name +
-                " " +
-                userDetails.user[0]?.last_name}
+              {user[0]?.first_name + " " + user[0]?.last_name}
             </h6>
           )}
-          {isAuthLoading ? (
+          {isFetching ? (
             <div className="bg-[#EEE] animate-pulse h-2 w-[72px] rounded-[104px]"></div>
           ) : (
-            <p className="text-grey  text-body-m !text-sm">{user?.email}</p>
+            <p className="text-grey  text-body-m !text-sm">
+              {user[0]?.email === "undefined" ? email : user[0]?.email}
+            </p>
           )}
         </div>
       </div>

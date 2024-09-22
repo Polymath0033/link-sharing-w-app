@@ -20,7 +20,7 @@ const linksReducer = createSlice({
     builder.addCase(fetchLinks.fulfilled, (state, action) => {
       state.isLinksLoading = false;
       state.links = action.payload;
-      // toast.success("Links fetched successfully");
+      toast.success("Links fetched successfully");
     });
 
     builder.addCase(fetchLinks.rejected, (state, action) => {

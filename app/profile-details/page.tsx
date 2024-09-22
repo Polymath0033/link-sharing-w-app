@@ -6,7 +6,11 @@ import { AppButton } from "@/components/atoms/buttons/app-button";
 import { supabase } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
-import { fetchUsersDetails, addUsersDetails } from "@/redux/thunk-functions";
+import {
+  fetchUsersDetails,
+  addUsersDetails,
+  fetchUser,
+} from "@/redux/thunk-functions";
 import Image from "next/image";
 import { UserData } from "@/types/user-data";
 import { ImageUpload } from "@/components/molecules/image-upload";
@@ -99,46 +103,49 @@ const ProfileDetailsPage: FC = () => {
   const [state, dispatch] = useReducer(reducer, initialState);
 
   useEffect(() => {
-    if (user) {
-      dispatch({
-        type: "email",
-        payload: { value: user[0]?.email || "", error: "", blur: false },
-      });
-      dispatch({
-        type: "firstName",
-        payload: { value: user[0]?.first_name || "", error: "", blur: false },
-      });
-      dispatch({
-        type: "lastName",
-        payload: { value: user[0]?.last_name || "", error: "", blur: false },
-      });
-      setImage(user[0]?.image_url || null);
-    }
-  }, [user]);
-  useEffect(() => {
-    const fetchUsersDetails_ = async () => {
-      // const { data: user } = await supabase.auth.getUser();
-      const id = auth?.id;
+    const fetchData = async () => {
+      const { data, error } = await supabase.auth.getUser();
+      if (error) {
+        console.log("Error fetching user", error);
+        return;
+      }
+      const id = data?.user.id;
       if (id) {
         await dispatch_(fetchUsersDetails(id));
       }
     };
-    fetchUsersDetails_();
-  }, [auth, dispatch_]);
-
+    fetchData();
+  }, [dispatch_]);
   useEffect(() => {
-    const fetchImages = async () => {
-      const { data: user } = await supabase.auth.getUser();
-      const id = user?.user?.id;
-      if (id) {
-        const images = await supabase.storage
-          .from("user_image")
-          .list("", { limit: 100, offset: 0 });
-        console.log(images);
-      }
-    };
-    fetchImages();
-  }, []);
+    if (user) {
+      dispatch({
+        type: "firstName",
+        payload: {
+          value: user[0]?.first_name,
+          error: "",
+          blur: false,
+        },
+      });
+      dispatch({
+        type: "lastName",
+        payload: {
+          value: user[0]?.last_name,
+          error: "",
+          blur: false,
+        },
+      });
+      dispatch({
+        type: "email",
+        payload: {
+          value: user[0]?.email,
+          error: "",
+          blur: false,
+        },
+      });
+      setImage(user[0]?.image_url);
+    }
+  }, [user]);
+
   const imageHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     const allowedTypes = ["image/jpeg", "image/png"];
