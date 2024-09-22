@@ -14,7 +14,7 @@ import { urlPrefixes } from "@/utils/url-prefixes";
 import { addLinks, fetchLinks, fetchUser } from "@/redux/thunk-functions";
 export const HomePage: FC = () => {
   const dispatch = useAppDispatch();
-  const linkStore = useAppSelector((state) => state.links.links);
+  //  const linkStore = useAppSelector((state) => state.links.links);
   const [links_, setLinks_] = useState<LinksType[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -95,32 +95,8 @@ export const HomePage: FC = () => {
     };
 
     modifyLinksPlaceholder();
-  }, [links_, urlPrefixes]);
-  useEffect(() => {
-    // dispatch(fetchUser());
-    // console.log("auth", auth);
-    const fetchUserData = async () => {
-      const user = await dispatch(fetchUser());
-    };
-    fetchUserData();
-  }, []);
-  // useEffect(() => {
-  //   const fetchLinks = async () => {
-  //     const user = await supabase.auth.getUser();
-  //     const id = user.data.user?.id;
-  //     const { data, error } = await supabase
-  //       .from("links")
-  //       .select("*")
-  //       .eq("user_id", id);
-  //     if (error) {
-  //       console.log(error);
-  //       // setError(error);
-  //     } else {
-  //       console.log(data);
-  //     }
-  //   };
-  //   fetchLinks();
-  // }, []);
+  }, [links_]);
+
   const submitHandler = async () => {
     let isValid = true;
     //const regex = new RegExp()

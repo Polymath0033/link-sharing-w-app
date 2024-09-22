@@ -6,10 +6,11 @@ import { AppButton } from "@/components/atoms/buttons/app-button";
 import { supabase } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
-import { fetchUser } from "@/redux/thunk-functions";
+import { fetchUsersDetails, addUsersDetails } from "@/redux/thunk-functions";
 import Image from "next/image";
 import { UserData } from "@/types/user-data";
 import { ImageUpload } from "@/components/molecules/image-upload";
+
 type InitialState = {
   email: {
     value: string;
@@ -89,10 +90,55 @@ const reducer = (state: InitialState, action: Action): InitialState => {
   }
 };
 const ProfileDetailsPage: FC = () => {
-  const [state, dispatch] = useReducer(reducer, initialState);
   const [image, setImage] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const router = useRouter();
+  const dispatch_ = useAppDispatch();
+  const user = useAppSelector((state) => state.user.user);
+  const auth = useAppSelector((state) => state.auth.user);
+  const [state, dispatch] = useReducer(reducer, initialState);
 
+  useEffect(() => {
+    if (user) {
+      dispatch({
+        type: "email",
+        payload: { value: user[0]?.email || "", error: "", blur: false },
+      });
+      dispatch({
+        type: "firstName",
+        payload: { value: user[0]?.first_name || "", error: "", blur: false },
+      });
+      dispatch({
+        type: "lastName",
+        payload: { value: user[0]?.last_name || "", error: "", blur: false },
+      });
+      setImage(user[0]?.image_url || null);
+    }
+  }, [user]);
+  useEffect(() => {
+    const fetchUsersDetails_ = async () => {
+      // const { data: user } = await supabase.auth.getUser();
+      const id = auth?.id;
+      if (id) {
+        await dispatch_(fetchUsersDetails(id));
+      }
+    };
+    fetchUsersDetails_();
+  }, [auth, dispatch_]);
+
+  useEffect(() => {
+    const fetchImages = async () => {
+      const { data: user } = await supabase.auth.getUser();
+      const id = user?.user?.id;
+      if (id) {
+        const images = await supabase.storage
+          .from("user_image")
+          .list("", { limit: 100, offset: 0 });
+        console.log(images);
+      }
+    };
+    fetchImages();
+  }, []);
   const imageHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     const allowedTypes = ["image/jpeg", "image/png"];
@@ -160,13 +206,12 @@ const ProfileDetailsPage: FC = () => {
       dispatch({ type: "loading", payload: true });
       const { data: user } = await supabase.auth.getUser();
       const id = user?.user?.id;
-
       if (id) {
-        const { data: userData, error: fetchError } = await supabase
+        const { data, error: fetchError } = await supabase
           .from("user")
           .select("*")
           .eq("user_id", id);
-        //const userData:UserData = data;
+        const userData: UserData = data ? data : [];
         if (fetchError) throw fetchError;
 
         if (userData && userData.length > 0) {
@@ -178,30 +223,26 @@ const ProfileDetailsPage: FC = () => {
               .from("user_image")
               .list(`${id}/user_image`);
             if (listError) throw listError;
-            // https://vtttlvlxaekgkwrkhwhx.supabase.co/storage/v1/object/public/user_image/user_image/5c13442b-d4cf-4438-b5a6-da1a56a79f95/rwanda-svg-removebg-preview.png
             console.log("filess", files);
             console.log(listError);
             let uploadError;
-            if (files && files.length > 0) {
-              // Update existing image
-              const { error } = await supabase.storage
-                .from("user_image")
-                .update(filePath, imageFile, {
-                  cacheControl: "3600",
-                  upsert: false,
-                });
-              uploadError = error;
-            } else {
-              // Upload new image
+            if (userData[0].image_url.length > 0) {
               const { error } = await supabase.storage
                 .from("user_image")
                 .upload(filePath, imageFile, {
                   cacheControl: "3600",
-                  upsert: false,
+                  upsert: true,
                 });
-              uploadError = error;
+              // (bucket_id = 'user_image'::text)
+              console.log(error);
+            } else {
+              const { error } = await supabase.storage
+                .from("user_image")
+                .upload(filePath, imageFile, {
+                  cacheControl: "3600",
+                  upsert: true,
+                });
             }
-
             if (uploadError) throw uploadError;
 
             const { data: publicURLData } = supabase.storage
@@ -224,7 +265,6 @@ const ProfileDetailsPage: FC = () => {
             }
           }
         } else {
-          // User doesn't exist, proceed with insert
           console.log("Inserting new user");
           if (imageFile) {
             const filePath = `user_image/${id}/${imageFile.name}`;
@@ -256,6 +296,7 @@ const ProfileDetailsPage: FC = () => {
       }
 
       dispatch({ type: "loading", payload: false });
+      router.push("/");
     } catch (error) {
       console.log("Error:", error);
       dispatch({ type: "loading", payload: false });

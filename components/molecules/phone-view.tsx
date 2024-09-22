@@ -17,39 +17,26 @@ export const PhoneView: FC = () => {
   useEffect(() => {
     const fetchLinks_ = async () => {
       try {
-        const user = await dispatch(fetchUser());
-        const id = (user.payload as { id: string })?.id;
-        if (id) {
-          await dispatch(fetchLinks({ user_id: id }));
-          const data = await dispatch(fetchUsersDetails(id));
-          console.log(data);
+        // const user = await dispatch(fetchUser());
+        //const id = (user.payload as { id: string })?.id;
+        if (user?.id) {
+          await dispatch(fetchLinks({ user_id: user.id }));
+          await dispatch(fetchUsersDetails(user.id));
         }
       } catch (error) {}
     };
     fetchLinks_();
-  }, [dispatch]);
-  useEffect(() => {
-    const fetchUser_ = async () => {
-      try {
-        const data = await dispatch(fetchUser());
-        console.log(data);
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    fetchUser_();
-  }, [dispatch]);
+  }, [dispatch, user?.id]);
   // useEffect(() => {
-  //   const fetchUserDetails_ = async () => {
+  //   const fetchUser_ = async () => {
   //     try {
-  //       const
-
+  //       await dispatch(fetchUser());
   //     } catch (error) {
   //       console.log(error);
   //     }
-  //   }
-  // },[])
-
+  //   };
+  //   fetchUser_();
+  // }, [dispatch]);
   return (
     <div className=" absolute w-[calc(100%_-_24px)] h-[calc(100%_-_28px)] overflow-y-scroll no-scrollbar my-7 rounded-[50px] px-6 py-8 flex  items-center mt-7  flex-col gap-14 mx-6">
       <div
@@ -122,7 +109,7 @@ export const PhoneView: FC = () => {
           ))}
         </div>
       ) : (
-        <ul className="flex flex-col gap-5 w-full">
+        <ul className="flex flex-col gap-5 w-full h-full overflow-y-scroll no-scrollbar ">
           {links.map((link) => (
             <PillBox key={link.id} title={link.platform} url={link.link} />
           ))}

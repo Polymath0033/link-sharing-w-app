@@ -7,13 +7,17 @@ import {
   updateUsersDetails,
 } from "./thunk-functions";
 import { UserData } from "@/types/user-data";
-
+type InitialState = {
+  user: UserData;
+  isFetching: boolean;
+};
+const initialState: InitialState = {
+  user: [],
+  isFetching: false,
+};
 export const userReducer = createSlice({
   name: "user",
-  initialState: {
-    user: [] as UserData | [],
-    isFetching: false,
-  },
+  initialState: initialState,
   reducers: {},
   extraReducers: (builder) => {
     builder.addCase(fetchUsersDetails.pending, (state, action) => {
@@ -35,15 +39,6 @@ export const userReducer = createSlice({
     builder.addCase(addUsersDetails.rejected, (state, action) => {
       toast.error(action.error.message);
     });
-    // builder.addCase(updateUsersDetails.fulfilled, (state, action) => {
-    //   state.user = state.user.map((user) =>
-    //     user.user_id === action.payload[0].user_id ? action.payload[0] : user
-    //   );
-    //   toast.success("User updated successfully");
-    // });
-    // builder.addCase(updateUsersDetails.rejected, (state, action) => {
-    //   toast.error(action.error.message);
-    // });
   },
 });
 export const userAction = userReducer.actions;

@@ -1,12 +1,29 @@
-import React, { FC } from "react";
+"use client";
+import React, { FC, use, useEffect } from "react";
 import { AppHeader } from "@/components/molecules/header";
 import { FrameOne } from "../atoms/frames/frame-one";
 import { FrameTwo } from "../atoms/frames/frame-two";
-import { PillBox } from "./pill-box";
 import { PhoneView } from "./phone-view";
+import { useAppDispatch, useAppSelector } from "@/hooks/redux";
+import { fetchUser, fetchUsersDetails } from "@/redux/thunk-functions";
 export const HomeWrapper: FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
+  const dispatch = useAppDispatch();
+  const auth = useAppSelector((state) => state.auth.user);
+  useEffect(() => {
+    const fetchUser_ = async () => {
+      try {
+        await dispatch(fetchUser());
+        if (auth?.id) {
+          await dispatch(fetchUsersDetails(auth.id));
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    fetchUser_();
+  }, [dispatch, auth?.id]);
   return (
     <div className="sm:p-6 flex flex-col">
       <AppHeader />

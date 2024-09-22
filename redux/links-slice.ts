@@ -29,8 +29,8 @@ const linksReducer = createSlice({
     });
     builder.addCase(addLinks.fulfilled, (state, action) => {
       state.links = [...state.links, ...action.payload];
-      console.log(action.payload);
-      console.log(state.links);
+      // console.log(action.payload);
+      // console.log(state.links);
       toast.success("Links added successfully");
     });
     builder.addCase(addLinks.rejected, (state, action) => {

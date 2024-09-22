@@ -97,14 +97,15 @@ export const updateUsersDetails = createAsyncThunk(
       email: string;
       user_id: string;
       image_url: string;
-    },
+    }[],
     thunkApi
   ) => {
     try {
+      if (details.length === 0) return;
       const { data, error } = await supabase
         .from("user")
         .update(details)
-        .eq("user_id", details.user_id);
+        .eq("user_id", details[0].user_id);
       if (error) throw error;
       return data;
     } catch (error) {

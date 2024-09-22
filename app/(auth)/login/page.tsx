@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useReducer } from "react";
 import { supabase } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
-import Cookies from "js-cookie";
 import { formatAuthError } from "@/utils/format-auth-error";
 type InitialState = {
   email: {
@@ -143,9 +142,7 @@ export default function LoginPage() {
         throw error;
       }
 
-      if (!error) {
-        router.push("/");
-      }
+      router.push("/");
     } catch (error) {
       console.log(error);
     }
