@@ -48,6 +48,23 @@ export const addLinks = createAsyncThunk(
     }
   }
 );
+export const removeLink = createAsyncThunk(
+  "links/removeLink",
+  async (id: string, thunkApi) => {
+    try {
+      const { data, error } = await supabase
+        .from("links")
+        .delete()
+        .eq("id", id);
+      console.log(data);
+      console.log(error);
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      return thunkApi.rejectWithValue(error);
+    }
+  }
+);
 // users-details thunks
 export const addUsersDetails = createAsyncThunk(
   "user/addUserDetails",

@@ -5,9 +5,10 @@ import { AppInput } from "../atoms/inputs/app-input";
 import { AppButton } from "../atoms/buttons/app-button";
 import { useReducer, useState, useEffect } from "react";
 import { supabase } from "@/utils/supabase/client";
-import { useRouter } from "next/navigation";
+
 import { UserData } from "@/types/user-data";
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
+import { uiAction } from "@/redux/ui-slice";
 type InitialState = {
   firstName: {
     value: string;
@@ -73,12 +74,12 @@ const reducer = (state: InitialState, action: Action): InitialState => {
       return state;
   }
 };
-export const ProfileDetails: FC = () => {
+export const ProfileDetails: FC<{ user: UserData }> = ({ user }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
   const [image, setImage] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const router = useRouter();
-  const { user } = useAppSelector((state) => state.user);
+  //  const { user } = useAppSelector((state) => state.user);
+  const dispatch_ = useAppDispatch();
   const imageHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     const allowedTypes = ["image/jpeg", "image/png"];
@@ -172,7 +173,6 @@ export const ProfileDetails: FC = () => {
         if (fetchError) throw fetchError;
 
         if (userData && userData.length > 0) {
-          console.log("Existing userData", userData);
           // User exists, proceed with update
           if (imageFile) {
             const filePath = `user_image/${id}/${imageFile.name}`;
@@ -253,7 +253,7 @@ export const ProfileDetails: FC = () => {
       }
 
       dispatch({ type: "loading", payload: false });
-      router.push("/");
+      dispatch_(uiAction.handleUi("links"));
     } catch (error) {
       console.log("Error:", error);
       dispatch({ type: "loading", payload: false });

@@ -1,5 +1,4 @@
 import { HomeWrapper } from "@/components/molecules/home-wrapper";
-import { HomePage } from "@/components/molecules/home";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { UserData } from "@/types/user-data";
@@ -35,9 +34,5 @@ export default async function Home() {
     }
   }
 
-  return (
-    <HomeWrapper>
-      <HomePage />
-    </HomeWrapper>
-  );
+  return <HomeWrapper />;
 }

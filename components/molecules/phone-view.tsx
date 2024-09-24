@@ -5,28 +5,28 @@ import { useAppDispatch, useAppSelector } from "@/hooks/redux";
 import { fetchLinks } from "@/redux/thunk-functions";
 import Image from "next/image";
 import { UserData } from "@/types/user-data";
+import { Links } from "@/types/redux";
 export const PhoneView: FC<{
   id: string | undefined;
   user: UserData;
   isFetching: boolean;
   email: string | undefined;
-}> = ({ id, user, isFetching, email }) => {
-  const dispatch = useAppDispatch();
-  const { links, isLinksLoading } = useAppSelector((state) => state.links);
-  // const auth = useAppSelector((state) => state.auth);
-  useEffect(() => {
-    //console.log(user?.id);
-    const fetchLinks_ = async () => {
-      try {
-        if (id !== undefined) {
-          console.log(id);
-          await dispatch(fetchLinks({ user_id: id }));
-          //  await dispatch(fetchUsersDetails(id));
-        }
-      } catch (error) {}
-    };
-    fetchLinks_();
-  }, [dispatch, id]);
+  links: Links;
+  isLinksLoading: boolean;
+}> = ({ user, isFetching, email, links, isLinksLoading }) => {
+  // const dispatch = useAppDispatch();
+  // const { links, isLinksLoading } = useAppSelector((state) => state.links);
+  // useEffect(() => {
+  //   const fetchLinks_ = async () => {
+  //     try {
+  //       if (id !== undefined) {
+  //         console.log(id);
+  //         await dispatch(fetchLinks({ user_id: id }));
+  //       }
+  //     } catch (error) {}
+  //   };
+  //   fetchLinks_();
+  // }, [dispatch, id]);
   return (
     <div className=" absolute w-[calc(100%_-_24px)] h-[calc(100%_-_28px)] overflow-y-scroll no-scrollbar my-7 rounded-[50px] px-6 py-8 flex  items-center mt-7  flex-col gap-14 mx-6">
       <div

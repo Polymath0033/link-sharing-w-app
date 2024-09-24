@@ -5,4 +5,6 @@ export type LinksType = {
   blur: boolean;
   error: string;
   placeholder: string;
+  isNew: boolean;
+  id: string;
 };

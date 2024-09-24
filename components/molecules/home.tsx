@@ -12,10 +12,28 @@ import { LinksType } from "@/types/links";
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
 import { urlPrefixes } from "@/utils/url-prefixes";
 import { addLinks, fetchLinks, fetchUser } from "@/redux/thunk-functions";
-export const HomePage: FC = () => {
+import { Links } from "@/types/redux";
+import { removeLink } from "@/redux/thunk-functions";
+import { v4 as uuidv4, v4 } from "uuid";
+export const HomePage: FC<{ links: Links }> = ({ links }) => {
   const dispatch = useAppDispatch();
   //  const linkStore = useAppSelector((state) => state.links.links);
-  const [links_, setLinks_] = useState<LinksType[]>([]);
+  const [links_, setLinks_] = useState<LinksType[]>(() => {
+    let link: LinksType[] = [];
+    for (let li of links) {
+      link.push({
+        platform: li.platform,
+        link: li.link,
+        dropdown: false,
+        blur: false,
+        error: "",
+        placeholder: "",
+        isNew: false,
+        id: li.id,
+      });
+    }
+    return link;
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [data_, setData_] = useState(null);
@@ -30,6 +48,8 @@ export const HomePage: FC = () => {
         blur: false,
         error: "",
         placeholder: "",
+        isNew: true,
+        id: uuidv4(),
       },
     ]);
   };
@@ -71,8 +91,15 @@ export const HomePage: FC = () => {
       prevLinks.map((link, i) => (i === index ? { ...link, blur: true } : link))
     );
   };
-  const removeLink = (index: number) => {
-    setLinks_((prevLinks) => prevLinks.filter((_, i) => i !== index));
+  const removeLink_ = async (index: number) => {
+    // const filteredLinks = links_.filter((_, i) => i !== index);
+    const selectedLink = links_.find((_, i) => i === index);
+    if (!selectedLink?.isNew && selectedLink?.id) {
+      await dispatch(removeLink(selectedLink?.id));
+    } else {
+      setLinks_((prevLinks) => prevLinks.filter((_, i) => i !== index));
+    }
+    console.log(selectedLink);
   };
 
   useEffect(() => {
@@ -202,7 +229,7 @@ export const HomePage: FC = () => {
                 updatePlatform(index, newPlatform)
               }
               onUpdateLink={(newLink: string) => updateLink(index, newLink)}
-              removeLink={() => removeLink(index)}
+              removeLink={() => removeLink_(index)}
               updateDropdown={() => updateDropdown(index)}
               closeDropdown={() => closeDropdown(index)}
               onBlur={() => updateBlur(index)}

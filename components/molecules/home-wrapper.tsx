@@ -6,12 +6,15 @@ import { FrameTwo } from "../atoms/frames/frame-two";
 import { PhoneView } from "./phone-view";
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
 import { fetchUser, fetchUsersDetails } from "@/redux/thunk-functions";
-export const HomeWrapper: FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+import { HomePage } from "./home";
+import { ProfileDetails } from "./profile-details";
+import { fetchLinks } from "@/redux/thunk-functions";
+export const HomeWrapper: FC<{}> = ({}) => {
   const dispatch = useAppDispatch();
   const auth = useAppSelector((state) => state.auth.user);
   const { user, isFetching } = useAppSelector((state) => state.user);
+  const ui = useAppSelector((state) => state.ui);
+  const { links, isLinksLoading } = useAppSelector((state) => state.links);
   useEffect(() => {
     const fetchUser_ = async () => {
       try {
@@ -24,6 +27,16 @@ export const HomeWrapper: FC<{ children: React.ReactNode }> = ({
       }
     };
     fetchUser_();
+  }, [dispatch, auth?.id]);
+  useEffect(() => {
+    const fetchLinks_ = async () => {
+      try {
+        if (auth?.id !== undefined) {
+          await dispatch(fetchLinks({ user_id: auth.id }));
+        }
+      } catch (error) {}
+    };
+    fetchLinks_();
   }, [dispatch, auth?.id]);
   return (
     <div className="sm:p-6 flex flex-col">
@@ -39,11 +52,17 @@ export const HomeWrapper: FC<{ children: React.ReactNode }> = ({
               user={user}
               email={auth?.email}
               isFetching={isFetching}
+              links={links}
+              isLinksLoading={isLinksLoading}
             />
           </div>
         </section>
         <section className="flex flex-col relative items-start [flex:1_0_0] gap-10 bg-white h-full pt-10 pb-6 rounded-xl overflow-y-scroll no-scrollbar overflow-x-hidden md:scrollbar">
-          {children}
+          {ui.header === "links" ? (
+            <HomePage links={links} />
+          ) : (
+            <ProfileDetails user={user} />
+          )}
         </section>
       </main>
     </div>

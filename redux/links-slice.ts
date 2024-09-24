@@ -1,8 +1,9 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { supabase } from "@/utils/supabase/client";
-import { fetchLinks, addLinks } from "./thunk-functions";
+import { fetchLinks, addLinks, removeLink } from "./thunk-functions";
 import { toast } from "react-toastify";
 import { Links } from "@/types/redux";
+
 const linksReducer = createSlice({
   name: "links",
   initialState: {
@@ -11,6 +12,7 @@ const linksReducer = createSlice({
     // Define the initial state here
   },
   reducers: {
+    addNewLink: (state, action: PayloadAction) => {},
     // Define the reducers here
   },
   extraReducers: (builder) => {
@@ -34,6 +36,14 @@ const linksReducer = createSlice({
       toast.success("Links added successfully");
     });
     builder.addCase(addLinks.rejected, (state, action) => {
+      toast.error(action.error.message);
+    });
+    builder.addCase(removeLink.fulfilled, (state, action) => {
+      state.links = state.links.filter((link) => link.id !== action.payload);
+      toast.success("Link removed successfully");
+    });
+    builder.addCase(removeLink.rejected, (state, action) => {
+      console.log(action.error.message);
       toast.error(action.error.message);
     });
   },
