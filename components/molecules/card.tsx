@@ -3,7 +3,7 @@ import { FC, useState } from "react";
 import { AppSelect } from "../atoms/inputs/app-select";
 import { AppInput } from "../atoms/inputs/app-input";
 import { LinksType } from "@/types/links";
-
+import { useEffect, useRef } from "react";
 export const Card: FC<{
   index: number;
   links: LinksType;
@@ -13,6 +13,9 @@ export const Card: FC<{
   updateDropdown: () => void;
   onBlur: () => void;
   closeDropdown: () => void;
+  disabled: boolean;
+  isLoading: boolean;
+  dragSort: (oldIndex: number, newIndex: number) => void;
 }> = ({
   onUpdatePlatform,
   onUpdateLink,
@@ -22,14 +25,52 @@ export const Card: FC<{
   onBlur,
   closeDropdown,
   links,
+  disabled,
+  isLoading,
+  dragSort,
 }) => {
-  const [selectedLink, setSelectedLink] = useState<string>("");
-  const selectedLinkHandler = (value: string) => {
-    setSelectedLink(value);
+  const dragItem = useRef<{ index: number | null }>({ index: null });
+  const dragOver = useRef<{ index: number | null }>({ index: null });
+  const handleSort = () => {
+    const di = dragItem?.current;
+    const doc = dragOver?.current;
+    console.log("di", di);
+    console.log("doc", doc);
+    if (
+      dragItem.current !== null &&
+      dragOver.current !== null &&
+      dragItem.current !== dragOver.current
+    ) {
+      dragSort(dragItem.current.index!, dragOver.current.index!);
+    }
+    // Reset the refs after sorting
+    dragItem.current = { index: null };
+    dragOver.current = { index: null };
+    // if (di && doc) {
+    //   dragSort(di.index!, doc.index!);
+    // }
   };
-  const [value, setValue] = useState<string>("");
+  const handleDragStart = () => {
+    dragItem.current = { index }; // Set dragged item index
+  };
+
+  const handleDragEnter = () => {
+    dragOver.current = { index }; // Set item currently being dragged over
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault(); // Prevent default to allow drop
+  };
+
   return (
-    <div className="rounded-xl bg-light-grey flex w-full flex-col p-5 !gap-3 justify-center items-center self-stretch">
+    <div
+      className="rounded-xl bg-light-grey flex w-full flex-col p-5 !gap-3 justify-center items-center self-stretch disabled:cursor-not-allowed"
+      draggable
+      onDragStart={handleDragStart}
+      onDragEnter={handleDragEnter}
+      onDragEnd={handleSort}
+      onDragOver={handleDragOver}
+    >
       <div className="flex justify-between w-full items-center">
         <div className="flex gap-2 items-center">
           <div className="flex flex-col gap-1 items-start">
@@ -41,11 +82,12 @@ export const Card: FC<{
           </h5>
         </div>
         <button
+          disabled={disabled}
           onClick={removeLink}
           type="button"
           className="text-grey text-body-m"
         >
-          Remove
+          {isLoading ? "Removing..." : "Remove"}
         </button>
       </div>
       <AppSelect
@@ -54,6 +96,7 @@ export const Card: FC<{
         dropdown={links.dropdown}
         closeDropdown={closeDropdown}
         dropdownHandler={updateDropdown}
+        disabled={disabled}
       />
       <AppInput
         id="link"
@@ -68,6 +111,7 @@ export const Card: FC<{
         errorValue={links.error}
         hasError={links.error.length > 0}
         onBlur={onBlur}
+        disabled={disabled}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"

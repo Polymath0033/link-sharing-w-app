@@ -29,22 +29,25 @@ const linksReducer = createSlice({
       state.isLinksLoading = false;
       toast.error(action.error.message);
     });
-    builder.addCase(addLinks.fulfilled, (state, action) => {
-      state.links = [...state.links, ...action.payload];
-      // console.log(action.payload);
-      // console.log(state.links);
-      toast.success("Links added successfully");
-    });
+    builder.addCase(
+      addLinks.fulfilled,
+      (state, action: PayloadAction<Links>) => {
+        const newLinks = action.payload.filter(
+          (newLink) => !state.links.some((link) => link.id === newLink.id)
+        );
+        state.links = [...state.links, ...newLinks];
+        toast.success("Links added successfully");
+      }
+    );
     builder.addCase(addLinks.rejected, (state, action) => {
       toast.error(action.error.message);
     });
     builder.addCase(removeLink.fulfilled, (state, action) => {
-      state.links = state.links.filter((link) => link.id !== action.payload);
-      toast.success("Link removed successfully");
+      state.links = state.links.filter((link) => link.id !== action.meta.arg);
     });
     builder.addCase(removeLink.rejected, (state, action) => {
-      console.log(action.error.message);
-      toast.error(action.error.message);
+      console.log(action);
+      toast.error("Failed to remove this link");
     });
   },
 });

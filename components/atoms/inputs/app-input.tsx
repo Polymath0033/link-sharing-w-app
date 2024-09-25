@@ -16,6 +16,7 @@ export const AppInput: FC<{
   onBlur?: (e: React.FocusEvent<HTMLInputElement, Element>) => void;
   className?: string;
   blur?: boolean;
+  disabled?: boolean;
 }> = ({
   title,
   id,
@@ -31,6 +32,7 @@ export const AppInput: FC<{
   onBlur,
   className,
   blur,
+  disabled,
 }) => {
   return (
     <label htmlFor={id} className={`w-full ${className}`}>
@@ -49,7 +51,8 @@ export const AppInput: FC<{
           name={id}
           onBlur={(e) => onBlur && onBlur(e)}
           required={required}
-          className={`px-4 z-10 py-3 w-full bg-white outline-none border border-borders rounded-lg text-body-m text-dark-grey placeholder:opacity-50  focus:border-purple  focus:shadow-active-selection focus:ring-1 focus:ring-purple transition-all duration-200 ease-in-out
+          disabled={disabled}
+          className={`px-4 z-10 py-3 w-full bg-white outline-none border border-borders rounded-lg text-body-m text-dark-grey placeholder:opacity-50  focus:border-purple  focus:shadow-active-selection focus:ring-1 focus:ring-purple transition-all duration-200 ease-in-out disabled:bg-[#F5F5F5] disabled:text-dark-grey disabled:cursor-not-allowed
  ${hasIcon && "pl-12"} ${
             hasError && blur && "border-red ring-1 ring-red pr-32 "
           }

@@ -12,12 +12,14 @@ export const AppSelect: FC<{
   dropdown: boolean;
   dropdownHandler: () => void;
   closeDropdown: () => void;
+  disabled?: boolean;
 }> = ({
   onSelect,
   platform = "Github",
   dropdown,
   dropdownHandler,
   closeDropdown,
+  disabled,
 }) => {
   return (
     <>
@@ -43,7 +45,11 @@ export const AppSelect: FC<{
               {platform.length < 1 ? "Github" : platform}
             </p>
           </div>
-          <button type="button" className="text-grey text-body-m">
+          <button
+            disabled={disabled}
+            type="button"
+            className="text-grey text-body-m disabled:cursor-not-allowed"
+          >
             <DropdownIcon dropdown={dropdown} />
 
             {""}

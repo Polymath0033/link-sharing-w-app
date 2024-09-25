@@ -39,9 +39,10 @@ export const addLinks = createAsyncThunk(
     try {
       const { data, error } = await supabase
         .from("links")
-        .insert(links)
+        .upsert(links, { onConflict: "id", ignoreDuplicates: false })
         .select();
       if (error) throw error;
+      console.log(data);
       return data;
     } catch (error) {
       return thunkApi.rejectWithValue(error);
@@ -51,6 +52,7 @@ export const addLinks = createAsyncThunk(
 export const removeLink = createAsyncThunk(
   "links/removeLink",
   async (id: string, thunkApi) => {
+    console.log(id);
     try {
       const { data, error } = await supabase
         .from("links")

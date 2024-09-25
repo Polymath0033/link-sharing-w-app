@@ -1,5 +1,5 @@
 "use client";
-import React, { FC, use, useEffect } from "react";
+import React, { FC, useState, useEffect, use } from "react";
 import { AppHeader } from "@/components/molecules/header";
 import { FrameOne } from "../atoms/frames/frame-one";
 import { FrameTwo } from "../atoms/frames/frame-two";
@@ -9,12 +9,15 @@ import { fetchUser, fetchUsersDetails } from "@/redux/thunk-functions";
 import { HomePage } from "./home";
 import { ProfileDetails } from "./profile-details";
 import { fetchLinks } from "@/redux/thunk-functions";
+import { LinksType } from "@/types/links";
+import { Links } from "@/types/redux";
 export const HomeWrapper: FC<{}> = ({}) => {
   const dispatch = useAppDispatch();
   const auth = useAppSelector((state) => state.auth.user);
   const { user, isFetching } = useAppSelector((state) => state.user);
   const ui = useAppSelector((state) => state.ui);
   const { links, isLinksLoading } = useAppSelector((state) => state.links);
+  const [previewLinks, setPreviewLinks] = useState<LinksType[]>([]);
   useEffect(() => {
     const fetchUser_ = async () => {
       try {
@@ -32,12 +35,37 @@ export const HomeWrapper: FC<{}> = ({}) => {
     const fetchLinks_ = async () => {
       try {
         if (auth?.id !== undefined) {
-          await dispatch(fetchLinks({ user_id: auth.id }));
+          const a = await dispatch(fetchLinks({ user_id: auth.id }));
+          const insertLinks = () => {
+            let updatedLinks: LinksType[] = (a.payload as Links).map((li) => {
+              return {
+                platform: li.platform,
+                link: li.link,
+                dropdown: false,
+                blur: false,
+                error: "",
+                placeholder: "",
+                isNew: false,
+                id: li.id,
+                isDeleting: false,
+              };
+            });
+
+            // Ensure no duplicates by filtering out existing IDs
+            updatedLinks = updatedLinks.filter(
+              (link, index, self) =>
+                index === self.findIndex((t) => t.id === link.id)
+            );
+
+            return updatedLinks;
+          };
+          setPreviewLinks(insertLinks);
         }
       } catch (error) {}
     };
     fetchLinks_();
   }, [dispatch, auth?.id]);
+
   return (
     <div className="sm:p-6 flex flex-col">
       <AppHeader />

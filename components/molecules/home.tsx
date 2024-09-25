@@ -5,39 +5,50 @@ import { OutlinedButton } from "../atoms/buttons/outline-button";
 import { AppButton } from "../atoms/buttons/app-button";
 import Image from "next/image";
 import { supabase } from "@/utils/supabase/client";
-import { toast } from "react-toastify";
-import { selectIcons } from "@/utils/icon";
-import { SelectIcon } from "@/types/select-icon";
 import { LinksType } from "@/types/links";
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
 import { urlPrefixes } from "@/utils/url-prefixes";
 import { addLinks, fetchLinks, fetchUser } from "@/redux/thunk-functions";
 import { Links } from "@/types/redux";
 import { removeLink } from "@/redux/thunk-functions";
-import { v4 as uuidv4, v4 } from "uuid";
+import { v4 as uuidv4 } from "uuid";
 export const HomePage: FC<{ links: Links }> = ({ links }) => {
   const dispatch = useAppDispatch();
   //  const linkStore = useAppSelector((state) => state.links.links);
-  const [links_, setLinks_] = useState<LinksType[]>(() => {
-    let link: LinksType[] = [];
-    for (let li of links) {
-      link.push({
-        platform: li.platform,
-        link: li.link,
-        dropdown: false,
-        blur: false,
-        error: "",
-        placeholder: "",
-        isNew: false,
-        id: li.id,
-      });
-    }
-    return link;
-  });
+  const [links_, setLinks_] = useState<LinksType[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<null | string>(null);
   const [data_, setData_] = useState(null);
+  useEffect(() => {
+    const insertLinks = () => {
+      let updatedLinks: LinksType[] = links.map((li) => {
+        return {
+          platform: li.platform,
+          link: li.link,
+          dropdown: false,
+          blur: false,
+          error: "",
+          placeholder: "",
+          isNew: false,
+          id: li.id,
+          isDeleting: false,
+        };
+      });
 
+      // Ensure no duplicates by filtering out existing IDs
+      updatedLinks = updatedLinks.filter(
+        (link, index, self) => index === self.findIndex((t) => t.id === link.id)
+      );
+
+      return updatedLinks;
+    };
+    if (links_.length === 0) {
+      setLinks_(insertLinks);
+    }
+    //setLinks_(insertLinks);
+    console.log(links);
+    console.log("links_", links_);
+  }, [links, links_]);
   const addNewLink = () => {
     setLinks_((prevLinks) => [
       ...prevLinks,
@@ -50,6 +61,7 @@ export const HomePage: FC<{ links: Links }> = ({ links }) => {
         placeholder: "",
         isNew: true,
         id: uuidv4(),
+        isDeleting: false,
       },
     ]);
   };
@@ -92,14 +104,32 @@ export const HomePage: FC<{ links: Links }> = ({ links }) => {
     );
   };
   const removeLink_ = async (index: number) => {
-    // const filteredLinks = links_.filter((_, i) => i !== index);
     const selectedLink = links_.find((_, i) => i === index);
-    if (!selectedLink?.isNew && selectedLink?.id) {
-      await dispatch(removeLink(selectedLink?.id));
-    } else {
+
+    try {
+      // Set isDeleting to true for the selected link
+      setLinks_((prevLinks) =>
+        prevLinks.map((link, i) =>
+          i === index ? { ...link, isDeleting: true } : link
+        )
+      );
+
+      // If the link is not new (i.e., it's already saved), attempt to remove it via the API
+      if (!selectedLink?.isNew && selectedLink?.id) {
+        await dispatch(removeLink(selectedLink.id));
+      }
+
+      // Remove the link from the state (whether it's new or after successful deletion)
       setLinks_((prevLinks) => prevLinks.filter((_, i) => i !== index));
+    } catch (error) {
+      // Handle the error: Revert the isDeleting state in case of an error
+      setLinks_((prevLinks) =>
+        prevLinks.map((link, i) =>
+          i === index ? { ...link, isDeleting: false } : link
+        )
+      );
+      setError(error as any);
     }
-    console.log(selectedLink);
   };
 
   useEffect(() => {
@@ -123,7 +153,18 @@ export const HomePage: FC<{ links: Links }> = ({ links }) => {
 
     modifyLinksPlaceholder();
   }, [links_]);
-
+  const dragSort = useCallback(
+    (oldIndex: number, newIndex: number) => {
+      const updatedLinks = [...links_];
+      console.log(oldIndex, newIndex);
+      console.log(updatedLinks);
+      const [removed] = updatedLinks.splice(oldIndex, 1);
+      console.log(removed);
+      updatedLinks.splice(newIndex, 0, removed);
+      setLinks_(updatedLinks);
+    },
+    [links_]
+  );
   const submitHandler = async () => {
     let isValid = true;
     //const regex = new RegExp()
@@ -162,21 +203,49 @@ export const HomePage: FC<{ links: Links }> = ({ links }) => {
       const user = await dispatch(fetchUser());
       const id = (user.payload as { id: string })?.id;
       console.log("id", id);
-      const linksData: { platform: string; link: string; user_id: string }[] =
-        [];
+
+      const linksData: {
+        platform: string;
+        link: string;
+        user_id: string;
+        id: string;
+      }[] = [];
+
       for (let link_ of links_) {
         if (id) {
           linksData.push({
             link: link_.link,
             platform: link_.platform,
             user_id: id,
+            id: link_.id,
           });
         }
       }
-      // console.log(linksData);
-      await dispatch(addLinks(linksData));
-      const userLinks = await dispatch(fetchLinks({ user_id: id }));
-      console.log("userLinks", userLinks);
+      console.log(linksData);
+      const b = await dispatch(addLinks(linksData));
+      const insertLinks = () => {
+        let updatedLinks: LinksType[] = (b.payload as Links).map((li) => {
+          return {
+            platform: li.platform,
+            link: li.link,
+            dropdown: false,
+            blur: false,
+            error: "",
+            placeholder: "",
+            isNew: false,
+            id: li.id,
+            isDeleting: false,
+          };
+        });
+        // Ensure no duplicates by filtering out existing IDs
+        updatedLinks = updatedLinks.filter(
+          (link, index, self) =>
+            index === self.findIndex((t) => t.id === link.id)
+        );
+
+        return updatedLinks;
+      };
+      setLinks_(insertLinks);
       setLoading(false);
 
       //  console.log("links", linkStore);
@@ -222,9 +291,10 @@ export const HomePage: FC<{ links: Links }> = ({ links }) => {
         ) : (
           links_.map((link, index) => (
             <Card
-              key={index}
+              key={link.id}
               index={index}
               links={link}
+              dragSort={dragSort}
               onUpdatePlatform={(newPlatform: string) =>
                 updatePlatform(index, newPlatform)
               }
@@ -233,6 +303,8 @@ export const HomePage: FC<{ links: Links }> = ({ links }) => {
               updateDropdown={() => updateDropdown(index)}
               closeDropdown={() => closeDropdown(index)}
               onBlur={() => updateBlur(index)}
+              disabled={link.isDeleting}
+              isLoading={link.isDeleting}
             />
           ))
         )}

@@ -1,7 +1,8 @@
+import { ProgressBar } from "@/components/atoms/progress-bar";
 import { HomeWrapper } from "@/components/molecules/home-wrapper";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
-import { UserData } from "@/types/user-data";
+import { Suspense } from "react";
 
 export default async function Home() {
   //const user = await supabase.auth.getUser();
@@ -11,28 +12,10 @@ export default async function Home() {
   if (!user) {
     redirect("/login");
   }
-  const id = user.data.user?.id;
-  if (id) {
-    const { data, error } = await supabase
-      .from("user")
-      .select("*")
-      .eq("user_id", user.data.user?.id);
-    if (error) {
-      console.error(error);
-      throw error;
-    }
-    const userData: UserData = data;
-    if (!userData[0]) {
-      redirect("/profile-details");
-    } else if (userData[0]) {
-      if (
-        userData[0]?.first_name.length < 1 &&
-        userData[0]?.last_name.length < 1
-      ) {
-        redirect("/profile-details");
-      }
-    }
-  }
 
-  return <HomeWrapper />;
+  return (
+    <Suspense fallback={<ProgressBar />}>
+      <HomeWrapper />
+    </Suspense>
+  );
 }

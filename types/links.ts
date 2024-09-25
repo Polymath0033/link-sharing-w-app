@@ -7,4 +7,5 @@ export type LinksType = {
   placeholder: string;
   isNew: boolean;
   id: string;
+  isDeleting: boolean;
 };

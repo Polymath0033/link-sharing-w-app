@@ -3,6 +3,7 @@ export type Links = {
   platform: string;
   link: string;
   created_at: string;
+  user_id: string;
 }[];
 export type User = {
   id: string;
