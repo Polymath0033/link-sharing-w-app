@@ -6,6 +6,7 @@ import { useReducer } from "react";
 import { supabase } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import { formatAuthError } from "@/utils/format-auth-error";
+import { toast } from "react-toastify";
 type InitialState = {
   email: {
     value: string;
@@ -144,6 +145,7 @@ export default function LoginPage() {
 
       router.push("/");
     } catch (error) {
+      toast.error(formatAuthError(error?.message||"Failed to authenticate"))
       console.log(error);
     }
   };
