@@ -8,6 +8,7 @@ import { useReducer } from "react";
 import { supabase } from "@/utils/supabase/client";
 import { formatAuthError } from "@/utils/format-auth-error";
 import { AuthError } from "@supabase/supabase-js";
+import {toast} from "react-toastify";
 type InitialState = {
   email: {
     value: string;
@@ -203,6 +204,7 @@ export default function SignUp() {
       // redirect("/");
     } catch (error) {
       dispatch({ type: "loading", payload: false });
+      toast.error(formatAuthError(error?.message||"Failed to authenticate"))
       dispatch({
         type: "error",
         payload:
