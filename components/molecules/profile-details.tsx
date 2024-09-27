@@ -5,10 +5,11 @@ import { AppInput } from "../atoms/inputs/app-input";
 import { AppButton } from "../atoms/buttons/app-button";
 import { useReducer, useState, useEffect } from "react";
 import { supabase } from "@/utils/supabase/client";
-
+import { toast } from "react-toastify";
 import { UserData } from "@/types/user-data";
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
-import { uiAction } from "@/redux/ui-slice";
+
+import { toastHandler, fetchUsersDetails } from "@/redux/thunk-functions";
 type InitialState = {
   firstName: {
     value: string;
@@ -144,6 +145,7 @@ export const ProfileDetails: FC<{ user: UserData }> = ({ user }) => {
       });
     }
     if (
+      state.email.value &&
       state.email.value.trim() !== "" &&
       !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.email.value)
     ) {
@@ -176,12 +178,7 @@ export const ProfileDetails: FC<{ user: UserData }> = ({ user }) => {
           // User exists, proceed with update
           if (imageFile) {
             const filePath = `user_image/${id}/${imageFile.name}`;
-            const { data: files, error: listError } = await supabase.storage
-              .from("user_image")
-              .list(`${id}/user_image`);
-            if (listError) throw listError;
-            console.log("filess", files);
-            console.log(listError);
+
             let uploadError;
             if (userData[0].image_url.length > 0) {
               const { error } = await supabase.storage
@@ -190,8 +187,9 @@ export const ProfileDetails: FC<{ user: UserData }> = ({ user }) => {
                   cacheControl: "3600",
                   upsert: true,
                 });
+
               // (bucket_id = 'user_image'::text)
-              console.log(error);
+              uploadError = error;
             } else {
               const { error } = await supabase.storage
                 .from("user_image")
@@ -199,6 +197,7 @@ export const ProfileDetails: FC<{ user: UserData }> = ({ user }) => {
                   cacheControl: "3600",
                   upsert: true,
                 });
+              uploadError = error;
             }
             if (uploadError) throw uploadError;
 
@@ -208,7 +207,7 @@ export const ProfileDetails: FC<{ user: UserData }> = ({ user }) => {
             const publicUrl = publicURLData?.publicUrl;
 
             if (publicUrl) {
-              const { data, error } = await supabase
+              const { error } = await supabase
                 .from("user")
                 .update({
                   first_name: state.firstName.value,
@@ -217,15 +216,26 @@ export const ProfileDetails: FC<{ user: UserData }> = ({ user }) => {
                   image_url: publicUrl,
                 })
                 .eq("user_id", id);
+
               if (error) throw error;
-              console.log("data for update", data);
             }
+          } else {
+            const { error } = await supabase
+              .from("user")
+              .update({
+                first_name: state.firstName.value,
+                last_name: state.lastName.value,
+                email: state.email.value,
+                user_id: id,
+                image_url: userData[0].image_url,
+              })
+              .eq("user_id", id);
+            if (error) throw error;
           }
         } else {
-          console.log("Inserting new user");
           if (imageFile) {
             const filePath = `user_image/${id}/${imageFile.name}`;
-            const { data, error } = await supabase.storage
+            const { error } = await supabase.storage
               .from("user_image")
               .upload(filePath, imageFile, {
                 cacheControl: "3600",
@@ -251,11 +261,20 @@ export const ProfileDetails: FC<{ user: UserData }> = ({ user }) => {
           }
         }
       }
-
+      if (id) {
+        await dispatch_(fetchUsersDetails(id));
+      }
       dispatch({ type: "loading", payload: false });
-      dispatch_(uiAction.handleUi("links"));
+
+      dispatch_(
+        toastHandler({
+          message: "Your changes have been successfully saved!",
+          type: "user-details",
+        })
+      );
+      //dispatch_(uiAction.handleUi("links"));
     } catch (error) {
-      console.log("Error:", error);
+      toast.error("An error occurred, please try again");
       dispatch({ type: "loading", payload: false });
     }
   };

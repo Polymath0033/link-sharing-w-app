@@ -6,6 +6,7 @@ import { fetchLinks } from "@/redux/thunk-functions";
 import Image from "next/image";
 import { UserData } from "@/types/user-data";
 import { Links } from "@/types/redux";
+import { LinkPlaceholder } from "./link-placeholder";
 export const PhoneView: FC<{
   id: string | undefined;
   user: UserData;
@@ -14,19 +15,13 @@ export const PhoneView: FC<{
   links: Links;
   isLinksLoading: boolean;
 }> = ({ user, isFetching, email, links, isLinksLoading }) => {
-  // const dispatch = useAppDispatch();
-  // const { links, isLinksLoading } = useAppSelector((state) => state.links);
-  // useEffect(() => {
-  //   const fetchLinks_ = async () => {
-  //     try {
-  //       if (id !== undefined) {
-  //         console.log(id);
-  //         await dispatch(fetchLinks({ user_id: id }));
-  //       }
-  //     } catch (error) {}
-  //   };
-  //   fetchLinks_();
-  // }, [dispatch, id]);
+  const firstNameLastName =
+    user[0]?.first_name === undefined && user[0]?.last_name === undefined;
+  const emailExist = user[0]?.email === "undefined" && email === "undefined";
+  const linksLength = links.length;
+  useEffect(() => {
+    console.log(links);
+  }, [links]);
   return (
     <div className=" absolute w-[calc(100%_-_24px)] h-[calc(100%_-_28px)] overflow-y-scroll no-scrollbar my-7 rounded-[50px] px-6 py-8 flex  items-center mt-7  flex-col gap-14 mx-6">
       <div
@@ -65,16 +60,27 @@ export const PhoneView: FC<{
             <div className="bg-[#EEE] rounded-[104px] h-4 w-40"></div>
           )}
           {isFetching === false && (
-            <h6 className="text-dark-grey text-heading-s !text-lg">
-              {user[0]?.first_name + " " + user[0]?.last_name}
-            </h6>
+            <>
+              {firstNameLastName && (
+                <div className="bg-[#EEE] rounded-[104px] h-4 w-40"></div>
+              )}
+              <h6 className="text-dark-grey text-heading-s !text-lg">
+                {user && user[0]?.first_name + " " + user[0]?.last_name}
+              </h6>
+            </>
           )}
+
           {isFetching ? (
             <div className="bg-[#EEE] animate-pulse h-2 w-[72px] rounded-[104px]"></div>
           ) : (
-            <p className="text-grey  text-body-m !text-sm">
-              {user[0]?.email === "undefined" ? email : user[0]?.email}
-            </p>
+            <>
+              {emailExist && (
+                <div className="bg-[#EEE]  h-2 w-[72px] rounded-[104px]"></div>
+              )}
+              <p className="text-grey  text-body-m !text-sm">
+                {user[0]?.email !== "undefined" ? email : user[0]?.email}
+              </p>
+            </>
           )}
         </div>
       </div>
@@ -90,11 +96,14 @@ export const PhoneView: FC<{
           ))}
         </div>
       ) : (
-        <ul className="flex flex-col gap-5 w-full h-full overflow-y-scroll no-scrollbar ">
-          {links.map((link) => (
-            <PillBox key={link.id} title={link.platform} url={link.link} />
-          ))}
-        </ul>
+        <>
+          <ul className="flex flex-col gap-5 w-full h-full overflow-y-scroll no-scrollbar ">
+            {links.map((link) => (
+              <PillBox key={link.id} title={link.platform} url={link.link} />
+            ))}
+            {linksLength < 5 && <LinkPlaceholder length={5 - linksLength} />}
+          </ul>
+        </>
       )}
     </div>
   );

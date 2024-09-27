@@ -3,6 +3,7 @@ import { HomeWrapper } from "@/components/molecules/home-wrapper";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
+import Loading from "./loading";
 
 export default async function Home() {
   //const user = await supabase.auth.getUser();
@@ -14,7 +15,7 @@ export default async function Home() {
   }
 
   return (
-    <Suspense fallback={<ProgressBar />}>
+    <Suspense fallback={<Loading />}>
       <HomeWrapper />
     </Suspense>
   );

@@ -1,6 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { supabase } from "@/utils/supabase/client";
-import { AppDispatch } from ".";
+import { AppDispatch, AppThunk } from ".";
+import { uiAction } from "./ui-slice";
 export const fetchUser = createAsyncThunk(
   "auth/fetchUser",
   async (_, thunkApi) => {
@@ -58,8 +59,6 @@ export const removeLink = createAsyncThunk(
         .from("links")
         .delete()
         .eq("id", id);
-      console.log(data);
-      console.log(error);
       if (error) throw error;
       return data;
     } catch (error) {
@@ -132,3 +131,11 @@ export const updateUsersDetails = createAsyncThunk(
     }
   }
 );
+export const toastHandler =
+  (toast: { message: string; type: "user-details" | "preview" }): AppThunk =>
+  (dispatch) => {
+    dispatch(uiAction.showToast(toast));
+    setTimeout(() => {
+      dispatch(uiAction.hideToast());
+    }, 3000);
+  };

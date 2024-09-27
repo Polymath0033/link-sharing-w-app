@@ -42,13 +42,9 @@ export const HomePage: FC<{ links: Links }> = ({ links }) => {
 
       return updatedLinks;
     };
-    if (links_.length === 0) {
-      setLinks_(insertLinks);
-    }
-    //setLinks_(insertLinks);
-    console.log(links);
-    console.log("links_", links_);
-  }, [links, links_]);
+
+    setLinks_(insertLinks);
+  }, [links]);
   const addNewLink = () => {
     setLinks_((prevLinks) => [
       ...prevLinks,
@@ -213,6 +209,9 @@ export const HomePage: FC<{ links: Links }> = ({ links }) => {
 
       for (let link_ of links_) {
         if (id) {
+          if (link_.platform === "") {
+            link_.platform = "Github";
+          }
           linksData.push({
             link: link_.link,
             platform: link_.platform,
@@ -310,7 +309,7 @@ export const HomePage: FC<{ links: Links }> = ({ links }) => {
         )}
       </div>
 
-      <div className="flex flex-col justify-end self-stretch items-start  fixed bottom-6 rounded-br-xl rounded-bl-xl mt-8 left-6 w-[calc(100%_-_48px)] md:w-full md:left-0 z-50 bg-white md:relative">
+      <div className="flex flex-col justify-end self-stretch items-start  fixed bottom-6 rounded-br-xl rounded-bl-xl mt-8 left-6 w-[calc(100%_-_48px)] md:w-full md:left-0 z-40 bg-white md:relative">
         <div className="bg-borders h-[1px] w-full"></div>
         <div className="px-6 sm:px-10 py-3 flex flex-col sm:self-end w-full relative z-50 sm:w-fit items-stretch">
           <AppButton

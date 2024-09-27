@@ -64,3 +64,25 @@ body {
         transform: rotate(1turn)
     }
 }
+
+@keyframes toast-out {
+    from {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+    to {
+        opacity: 0;
+        transform: translate(-50%, -20px);
+    }
+}
+
+
+/* Tailwind animation classes */
+
+.animate-toast-in {
+    animation: toast-in 0.3s forwards;
+}
+
+.animate-toast-out {
+    animation: toast-out 0.3s forwards;
+}

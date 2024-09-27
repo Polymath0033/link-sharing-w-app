@@ -44,6 +44,7 @@ const linksReducer = createSlice({
     });
     builder.addCase(removeLink.fulfilled, (state, action) => {
       state.links = state.links.filter((link) => link.id !== action.meta.arg);
+      toast.success("Link removed successfully");
     });
     builder.addCase(removeLink.rejected, (state, action) => {
       console.log(action);
