@@ -4,7 +4,11 @@ export const AppToast: FC<{}> = ({}) => {
   const { toastType, toastShow } = useAppSelector((state) => state.ui);
 
   return (
-    <div className="fixed bottom-6 left-2 w-[calc(100%_-_16px)] sm:left-1/2  sm:-translate-x-1/2 flex gap-2 z-[100] py-4 px-6 bg-dark-grey shadow-box-shadow sm:w-fit rounded-xl">
+    <div
+      className={`fixed bottom-6 left-2 w-[calc(100%_-_16px)] sm:left-1/2  sm:-translate-x-1/2 flex gap-2 z-[100] py-4 px-6 bg-dark-grey shadow-box-shadow sm:w-fit rounded-xl ${
+        toastShow ? "animate-toast-in" : "animate-toast-out"
+      }`}
+    >
       {toastType?.type === "user-details" ? (
         <svg
           xmlns="http://www.w3.org/2000/svg"
