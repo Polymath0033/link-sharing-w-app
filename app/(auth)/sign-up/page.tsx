@@ -2,13 +2,12 @@
 import { AppButton } from "@/components/atoms/buttons/app-button";
 import { AppInput } from "@/components/atoms/inputs/app-input";
 import Link from "next/link";
-import { useRouter, redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
+import { useRouter } from "next/navigation";
 import { useReducer } from "react";
 import { supabase } from "@/utils/supabase/client";
 import { formatAuthError } from "@/utils/format-auth-error";
 import { AuthError } from "@supabase/supabase-js";
-import {toast} from "react-toastify";
+import { toast } from "react-toastify";
 type InitialState = {
   email: {
     value: string;
@@ -90,6 +89,7 @@ const reducer = (state: InitialState, action: Action): InitialState => {
 export default function SignUp() {
   const router = useRouter();
   const [state, dispatch] = useReducer(reducer, initialState);
+
   const submitForm = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -187,7 +187,6 @@ export default function SignUp() {
         password: state.password.value,
       });
       dispatch({ type: "loading", payload: false });
-
       console.error(String((error as AuthError)?.code));
       dispatch({ type: "loading", payload: false });
       dispatch({
@@ -200,11 +199,16 @@ export default function SignUp() {
         throw error;
       }
       router.push("/");
+
       // revalidatePath("/");
       // redirect("/");
     } catch (error) {
       dispatch({ type: "loading", payload: false });
-      toast.error(formatAuthError(error?.message||"Failed to authenticate"))
+      toast.error(
+        formatAuthError(
+          (error as AuthError)?.message || "Failed to authenticate"
+        )
+      );
       dispatch({
         type: "error",
         payload:
