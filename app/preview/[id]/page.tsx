@@ -68,6 +68,19 @@ export async function generateMetadata(
           },
         ],
       },
+      twitter: {
+        card: "summary_large_image",
+        title: title,
+        description: `View the profile of ${first_name} ${last_name}.`,
+        images: [
+          {
+            url: ogImageUrl,
+            width: 1200,
+            height: 630,
+            alt: `${first_name} ${last_name}'s profile image`,
+          },
+        ],
+      },
     };
   }
 
