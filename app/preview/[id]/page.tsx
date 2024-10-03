@@ -52,8 +52,6 @@ export async function generateMetadata(
     const { first_name, last_name } = user[0];
     const title = `${first_name} ${last_name} - Profile`;
     const image_url = user[0]?.image_url;
-    //https://dev-links-webapp.vercel.app
-    //http://localhost:3000/api/og?first_name=Yusu&,last_name=Olosan&user_image=IMG_20210912_174535_290.jpg
     const ogImageUrl = `https://dev-links-webapp.vercel.app/api/og?first_name=${first_name}&last_name=${last_name}&user_image=${image_url}`;
     return {
       title: title,

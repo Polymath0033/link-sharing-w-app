@@ -31,7 +31,7 @@ export async function GET(req: Request) {
         ></div>
         {/* https://vtttlvlxaekgkwrkhwhx.supabase.co/storage/v1/object/public/user_image/user_image/5c13442b-d4cf-4438-b5a6-da1a56a79f95/IMG_20210912_174535_290.jpg */}
         <img
-          src={`https://vtttlvlxaekgkwrkhwhx.supabase.co/storage/v1/object/public/user_image/user_image/5c13442b-d4cf-4438-b5a6-da1a56a79f95/${userImage}`}
+          src={userImage}
           alt={`${firstName} ${lastName}`}
           width="200"
           height="200"
