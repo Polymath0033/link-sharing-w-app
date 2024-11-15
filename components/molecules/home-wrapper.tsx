@@ -9,11 +9,14 @@ import { fetchUser, fetchUsersDetails } from "@/redux/thunk-functions";
 import { HomePage } from "./home";
 import { ProfileDetails } from "./profile-details";
 import { fetchLinks } from "@/redux/thunk-functions";
+import { useSearchParams } from "next/navigation";
+import { uiAction } from "@/redux/ui-slice";
 export const HomeWrapper: FC<{}> = ({}) => {
   const dispatch = useAppDispatch();
   const auth = useAppSelector((state) => state.auth.user);
   const { user, isFetching } = useAppSelector((state) => state.user);
   const ui = useAppSelector((state) => state.ui);
+  const searchParams = useSearchParams();
   const { links, isLinksLoading } = useAppSelector((state) => state.links);
   useEffect(() => {
     const fetchUser_ = async () => {
@@ -38,6 +41,12 @@ export const HomeWrapper: FC<{}> = ({}) => {
     };
     fetchLinks_();
   }, [dispatch, auth?.id]);
+  useEffect(() => {
+    if (!user) {
+      const params = new URLSearchParams(searchParams);
+      dispatch(uiAction.handleUi(params.get("header") as "links" | "profile"));
+    }
+  }, [dispatch, searchParams, user]);
   return (
     <div className="sm:p-6 flex flex-col">
       <AppHeader />
@@ -61,7 +70,7 @@ export const HomeWrapper: FC<{}> = ({}) => {
           {ui.header === "links" ? (
             <HomePage links={links} />
           ) : (
-            <ProfileDetails user={user} />
+            <ProfileDetails user={user} email={auth?.email} />
           )}
         </section>
       </main>

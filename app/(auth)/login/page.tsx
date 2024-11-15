@@ -158,7 +158,7 @@ export default function LoginPage() {
     <form className="bg-white flex flex-col items-start w-full sm:w-fit sm:p-10 gap-10">
       <div className="flex flex-col gap-2">
         <h1 className="text-dark-grey !text-2xl text-heading-m  sm:text-heading-m">
-          Login s
+          Login
         </h1>
         <p className="text-grey text-body-m">
           Add your details below to get back into the app

@@ -75,7 +75,10 @@ const reducer = (state: InitialState, action: Action): InitialState => {
       return state;
   }
 };
-export const ProfileDetails: FC<{ user: UserData }> = ({ user }) => {
+export const ProfileDetails: FC<{ user: UserData; email?: string }> = ({
+  user,
+  email,
+}) => {
   const [state, dispatch] = useReducer(reducer, initialState);
   const [image, setImage] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -102,6 +105,7 @@ export const ProfileDetails: FC<{ user: UserData }> = ({ user }) => {
       setImageFile(file);
     }
   };
+
   useEffect(() => {
     if (user) {
       dispatch({
@@ -112,13 +116,20 @@ export const ProfileDetails: FC<{ user: UserData }> = ({ user }) => {
         type: "lastName",
         payload: { value: user[0]?.last_name, error: "", blur: false },
       });
-      dispatch({
-        type: "email",
-        payload: { value: user[0]?.email, error: "", blur: false },
-      });
+      if (user[0]?.email) {
+        dispatch({
+          type: "email",
+          payload: { value: user[0]?.email, error: "", blur: false },
+        });
+      } else {
+        dispatch({
+          type: "email",
+          payload: { value: email || "", error: "", blur: false },
+        });
+      }
       setImage(user[0]?.image_url);
     }
-  }, [user]);
+  }, [user, email]);
 
   const submitProfileDetails = async () => {
     let isFormValid = true;

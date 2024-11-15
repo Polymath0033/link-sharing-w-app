@@ -82,7 +82,7 @@ export const AppHeader: FC<{}> = ({}) => {
         <div role="tab">
           <AppTab
             value="Profile Details"
-            active={ui === "profile"}
+            active={ui === "profile" || pathname === "/?tab=profile"}
             onClick={() => dispatch(uiAction.handleUi("profile"))}
             spanClassName="hidden sm:block"
           >
